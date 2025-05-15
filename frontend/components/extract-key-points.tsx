@@ -96,22 +96,23 @@ export function ExtractKeyPoints() {
               </TabsList>
               <TabsContent value="key-points">
                 <div className="grid gap-4 md:grid-cols-2">
-                  {result.key_points.map((point, index) => {
-                    const pointName = Object.keys(point)[0]
-                    return (
-                      <Card key={index}>
-                        <CardHeader className="pb-2">
-                          <div className="mb-2 inline-flex rounded-xl bg-blue-100 p-2 dark:bg-blue-900">
-                            <Lightbulb className="h-5 w-5 text-blue-500" />
-                          </div>
-                          <CardTitle className="text-lg">{pointName}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground">{JSON.stringify(point[pointName])}</p>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
+                  {result.key_points.map((point, index) => (
+                    <Card key={index}>
+                      <CardHeader className="pb-2">
+                        <div className="mb-2 inline-flex rounded-xl bg-blue-100 p-2 dark:bg-blue-900">
+                          <Lightbulb className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <CardTitle className="text-lg">{point.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        // Key Points description
+                        <p className="text-foreground">{point.description}</p>
+                        
+                        // Supporting Details list items
+                        <li className="text-sm text-foreground"/>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </TabsContent>
               <TabsContent value="supporting-details">

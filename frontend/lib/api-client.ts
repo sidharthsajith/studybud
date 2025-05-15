@@ -33,7 +33,7 @@ declare global {
  */
 export async function organizeNotes(notesCorpus: string) {
   const baseUrl = await getApiBaseUrl()
-  const response = await fetch(`${baseUrl}/organize-notes`, {
+  const response = await fetch(`${baseUrl}organize-notes`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export async function organizeNotes(notesCorpus: string) {
  */
 export async function extractKeyPoints(text: string) {
   const baseUrl = await getApiBaseUrl()
-  const response = await fetch(`${baseUrl}/extract-key-points`, {
+  const response = await fetch(`${baseUrl}extract-key-points`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -73,7 +73,7 @@ export async function extractKeyPoints(text: string) {
  */
 export async function generateFlashCards(text: string) {
   const baseUrl = await getApiBaseUrl()
-  const response = await fetch(`${baseUrl}/generate-flashcards`, {
+  const response = await fetch(`${baseUrl}generate-flashcards`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -93,7 +93,7 @@ export async function generateFlashCards(text: string) {
  */
 export async function generateStudyPlan(topic: string) {
   const baseUrl = await getApiBaseUrl()
-  const response = await fetch(`${baseUrl}/generate-study-plan`, {
+  const response = await fetch(`${baseUrl}generate-study-plan`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

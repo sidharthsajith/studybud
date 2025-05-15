@@ -3,17 +3,19 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { Sidebar } from "@/components/sidebar"
+
 import { ModeToggle } from "@/components/mode-toggle"
 import { ApiStatus } from "@/components/api-status"
 import { staggerContainer } from "@/lib/motion"
+import { Button } from '@/components/ui/button'
+import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 
 interface MainLayoutProps {
   children: React.ReactNode
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  
   const [scrollY, setScrollY] = useState(0)
   const { scrollY: scrollYProgress } = useScroll()
 
@@ -30,24 +32,10 @@ export function MainLayout({ children }: MainLayoutProps) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Responsive sidebar
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setSidebarOpen(false)
-      } else {
-        setSidebarOpen(true)
-      }
-    }
-
-    handleResize()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+  
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+    <div className="flex flex-col min-h-screen">
       <div className="flex-1 overflow-auto">
         <motion.header
           className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:px-6"
@@ -56,28 +44,40 @@ export function MainLayout({ children }: MainLayoutProps) {
             backdropFilter: `blur(${headerBlur.get()}px)`,
           }}
         >
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-6 w-6"
-            >
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-            <span className="sr-only">Toggle Menu</span>
-          </button>
+          <div className="flex items-center gap-6">
+              <span className="font-medium">StudyBud</span>
+              <nav className="hidden md:flex items-center gap-4">
+              <a href="/" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Home</a>
+                <a href="/organize-notes" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Note Organizer</a>
+                <a href="/extract-key-points" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Key Point</a>
+                <a href="/flash-cards" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Flashcard</a>
+                <a href="/study-plan" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Scheduler</a>
+              </nav>
+              <Drawer>
+                <DrawerTrigger asChild>
+                  <Button variant="outline" size="icon" className="md:hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="3" x2="21" y1="6" y2="6" />
+                      <line x1="3" x2="21" y1="12" y2="12" />
+                      <line x1="3" x2="21" y1="18" y2="18" />
+                    </svg>
+                  </Button>
+                </DrawerTrigger>
+                <DrawerContent className="max-h-[80vh] overflow-auto">
+                  <DrawerHeader>
+                    <DrawerTitle>Navigation Menu</DrawerTitle>
+                  </DrawerHeader>
+                  <nav className="flex flex-col gap-2 p-4">
+                    <a href="/dashboard" className="p-2 hover:bg-accent rounded-md">Dashboard</a>
+                    <a href="/courses" className="p-2 hover:bg-accent rounded-md">Courses</a>
+                    <a href="/progress" className="p-2 hover:bg-accent rounded-md">Progress</a>
+                    <a href="/profile" className="p-2 hover:bg-accent rounded-md">Profile</a>
+                    <a href="/groups" className="p-2 hover:bg-accent rounded-md">Study Groups</a>
+                    <a href="/settings" className="p-2 hover:bg-accent rounded-md">Settings</a>
+                  </nav>
+                </DrawerContent>
+              </Drawer>
+            </div>
           <div className="flex items-center gap-4">
             <ApiStatus />
             <ModeToggle />

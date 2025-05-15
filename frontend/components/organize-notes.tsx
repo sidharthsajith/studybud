@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { organizeNotes } from "@/lib/api-client"
+import { api } from "@/lib/api"
 import type { OrganizeNotesResponse } from "@/types/api"
 
 interface Category {
@@ -29,10 +29,14 @@ export function OrganizeNotes() {
     e.preventDefault()
     if (!notes.trim()) return
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
+    setResult(null)
+    setResult(null)
     try {
-      const data = await organizeNotes(notes)
+      const { data, error: apiError } = await api.organizeNotes(notes);
+      if (apiError) throw new Error(apiError)
+      if (apiError) throw new Error(apiError)
       setResult(data)
     } catch (err) {
       console.error("Error organizing notes:", err)
@@ -78,7 +82,7 @@ export function OrganizeNotes() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription className="flex items-center gap-2"><AlertCircle className="h-4 w-4" /> {error}</AlertDescription>
         </Alert>
       )}
 
