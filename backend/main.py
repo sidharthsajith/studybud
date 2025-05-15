@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict
 from studybud_backend.ai_services import (
@@ -17,6 +18,15 @@ app = FastAPI(
     title="StudyBud API",
     description="AI-powered study assistant API for organizing notes, generating flashcards, and creating quizzes",
     version="1.0.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Frontend default port
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 class NotesInput(BaseModel):
