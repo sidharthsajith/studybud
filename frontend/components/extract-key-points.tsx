@@ -12,11 +12,12 @@ import { extractKeyPoints } from "@/lib/api-client"
 import type { KeyPointsResponse } from "@/types/api"
 
 interface KeyPoint {
-  [key: string]: any
+  title: string
+  points: Array<{ text: string }>
 }
 
 interface SupportingDetails {
-  [key: string]: string[]
+  text: string[]
 }
 
 export function ExtractKeyPoints() {
@@ -105,11 +106,11 @@ export function ExtractKeyPoints() {
                         <CardTitle className="text-lg">{point.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        // Key Points description
-                        <p className="text-foreground">{point.description}</p>
-                        
-                        // Supporting Details list items
-                        <li className="text-sm text-foreground"/>
+                        <ul className="list-inside list-disc space-y-2">
+  {point.points.map((p, i) => (
+    <li key={i} className="text-foreground">{p.text}</li>
+  ))}
+</ul>
                       </CardContent>
                     </Card>
                   ))}
@@ -117,18 +118,16 @@ export function ExtractKeyPoints() {
               </TabsContent>
               <TabsContent value="supporting-details">
                 <div className="space-y-4">
-                  {Object.entries(result.supporting_details).map(([concept, details], index) => (
+                  {result.supporting_details.text.map((detail, index) => (
                     <Card key={index}>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">{concept}</CardTitle>
+                        <CardTitle className="text-lg">Supporting Detail {index + 1}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <ul className="list-inside list-disc space-y-1">
-                          {details.map((detail, i) => (
-                            <li key={i} className="text-sm text-muted-foreground">
-                              {detail}
-                            </li>
-                          ))}
+                          <li className="text-sm text-muted-foreground">
+                            {detail}
+                          </li>
                         </ul>
                       </CardContent>
                     </Card>
