@@ -41,6 +41,11 @@ export async function organizeNotes(notesCorpus: string) {
     body: JSON.stringify({ notes_corpus: notesCorpus }),
   })
 
+  const contentType = response.headers.get("content-type")
+  if (!contentType?.includes("application/json")) {
+    throw new Error(`Invalid response type: ${contentType}. Expected JSON.`)
+  }
+
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`)
   }
