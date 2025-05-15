@@ -32,17 +32,24 @@ export function OrganizeNotes() {
     setLoading(true);
     setError(null);
     setResult(null)
-    setResult(null)
     try {
-      const { data, error: apiError } = await api.organizeNotes(notes);
-      if (apiError) throw new Error(apiError)
-      if (apiError) throw new Error(apiError)
-      setResult(data)
+      const response = await api.organizeNotes(notes);
+      if (typeof response === 'string') {
+        // Handle HTML/error responses
+        throw new Error('Invalid server response');
+      }
+      const { data, error: apiError } = response;
+      if (apiError) throw new Error(apiError);
+      if (!data?.categories || !data?.concept_map) {
+        throw new Error('Invalid data format from server');
+      }
+      setResult(data);
     } catch (err) {
-      console.error("Error organizing notes:", err)
-      setError(err instanceof Error ? err.message : "An unknown error occurred")
+      console.error("Error organizing notes:", err);
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setResult(null);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -100,7 +107,7 @@ export function OrganizeNotes() {
               </TabsList>
               <TabsContent value="categories">
                 <div className="grid gap-4 md:grid-cols-2">
-                  {result.categories.map((category, index) => {
+                  {result?.categories?.map((category, index) => {
                     const categoryName = Object.keys(category)[0]
                     return (
                       <Card key={index}>

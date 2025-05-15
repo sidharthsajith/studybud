@@ -93,12 +93,21 @@ async def organize_notes_endpoint(notes_input: NotesInput):
     Organize and categorize study notes by topic and concept
     """
     try:
+        if not notes_input.text:
+            raise HTTPException(status_code=422, detail="No notes provided")
         result = organize_notes(notes_input.text)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Note organization failed",
+                "message": str(e),
+                "type": "server_error"
+            }
+        )
 
 @app.post("/extract-key-points", response_model=KeyPoints)
 async def extract_key_points(notes_input: NotesInput):
@@ -106,12 +115,21 @@ async def extract_key_points(notes_input: NotesInput):
     Extract key points and supporting details from study notes
     """
     try:
+        if not notes_input.text:
+            raise HTTPException(status_code=422, detail="No notes provided")
         result = generate_key_points(notes_input.text)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Note organization failed",
+                "message": str(e),
+                "type": "server_error"
+            }
+        )
 
 @app.post("/generate-flashcards", response_model=List[FlashCard])
 async def create_flash_cards(notes_input: NotesInput):
@@ -119,12 +137,21 @@ async def create_flash_cards(notes_input: NotesInput):
     Generate flash cards from study notes
     """
     try:
+        if not notes_input.text:
+            raise HTTPException(status_code=422, detail="No notes provided")
         result = generate_flash_cards(notes_input.text)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Note organization failed",
+                "message": str(e),
+                "type": "server_error"
+            }
+        )
 
 
 
@@ -134,12 +161,21 @@ async def generate_study_plan_endpoint(schedule_data: str):
     Generate optimized study plan based on schedule and tasks
     """
     try:
+        if not notes_input.text:
+            raise HTTPException(status_code=422, detail="No notes provided")
         result = generate_study_plan(schedule_data)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Note organization failed",
+                "message": str(e),
+                "type": "server_error"
+            }
+        )
 
 @app.get("/")
 async def root():
