@@ -1,0 +1,109 @@
+// Function to get the API base URL
+async function getApiBaseUrl() {
+  // Try to get from environment variable first
+  if (typeof window !== "undefined" && window.__API_BASE_URL) {
+    return window.__API_BASE_URL
+  }
+
+  try {
+    const response = await fetch("/api/config")
+    const config = await response.json()
+
+    if (typeof window !== "undefined") {
+      // Cache the base URL
+      window.__API_BASE_URL = config.apiBaseUrl
+    }
+
+    return config.apiBaseUrl
+  } catch (error) {
+    console.error("Failed to fetch API config:", error)
+    return "https://api.studybud.example.com" // Fallback
+  }
+}
+
+// Add this to the global Window interface
+declare global {
+  interface Window {
+    __API_BASE_URL?: string
+  }
+}
+
+/**
+ * Organize and categorize study notes by topic and concept
+ */
+export async function organizeNotes(notesCorpus: string) {
+  const baseUrl = await getApiBaseUrl()
+  const response = await fetch(`${baseUrl}/organize-notes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ notes_corpus: notesCorpus }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`)
+  }
+
+  return response.json()
+}
+
+/**
+ * Extract key points and summarize the main ideas from a text.
+ */
+export async function extractKeyPoints(text: string) {
+  const baseUrl = await getApiBaseUrl()
+  const response = await fetch(`${baseUrl}/extract-key-points`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text: text }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`)
+  }
+
+  return response.json()
+}
+
+/**
+ * Generate flashcards from a given text for memorization and review.
+ */
+export async function generateFlashCards(text: string) {
+  const baseUrl = await getApiBaseUrl()
+  const response = await fetch(`${baseUrl}/generate-flashcards`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text: text }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`)
+  }
+
+  return response.json()
+}
+
+/**
+ * Create a structured study plan with timelines and goals.
+ */
+export async function generateStudyPlan(topic: string) {
+  const baseUrl = await getApiBaseUrl()
+  const response = await fetch(`${baseUrl}/generate-study-plan`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ topic: topic }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`)
+  }
+
+  return response.json()
+}
