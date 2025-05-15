@@ -48,10 +48,6 @@ export function MainLayout({ children }: MainLayoutProps) {
               <span className="font-medium">StudyBud</span>
               <nav className="hidden md:flex items-center gap-4">
               <a href="/" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Home</a>
-                <a href="/organize-notes" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Note Organizer</a>
-                <a href="/extract-key-points" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Key Point</a>
-                <a href="/flash-cards" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Flashcard</a>
-                <a href="/study-plan" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Scheduler</a>
               </nav>
               <Drawer>
                 <DrawerTrigger asChild>
