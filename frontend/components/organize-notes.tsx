@@ -34,14 +34,16 @@ export function OrganizeNotes() {
     setResult(null)
     try {
       const response = await api.organizeNotes(notes);
-      if (typeof response === 'string') {
-        // Handle HTML/error responses
-        throw new Error('Invalid server response');
-      }
       const { data, error: apiError } = response;
-      if (apiError) throw new Error(apiError);
+      
+      if (apiError) {
+        setError(apiError);
+        return;
+      }
+      
       if (!data?.categories || !data?.concept_map) {
-        throw new Error('Invalid data format from server');
+        setError('Invalid data format from server');
+        return;
       }
       setResult(data);
     } catch (err) {

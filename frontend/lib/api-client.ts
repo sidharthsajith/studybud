@@ -41,9 +41,16 @@ export async function organizeNotes(notesCorpus: string) {
     body: JSON.stringify({ notes_corpus: notesCorpus }),
   })
 
+  // Check content type before attempting to parse JSON
   const contentType = response.headers.get("content-type")
   if (!contentType?.includes("application/json")) {
-    throw new Error(`Invalid response type: ${contentType}. Expected JSON.`)
+    // If we got HTML instead of JSON, provide a more helpful error message
+    const text = await response.text()
+    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+      throw new Error(`Server returned HTML instead of JSON. The API endpoint might be unavailable or returning an error page.`)
+    } else {
+      throw new Error(`Invalid response type: ${contentType}. Expected JSON.`)
+    }
   }
 
   if (!response.ok) {
@@ -66,6 +73,18 @@ export async function extractKeyPoints(text: string) {
     body: JSON.stringify({ text: text }),
   })
 
+  // Check content type before attempting to parse JSON
+  const contentType = response.headers.get("content-type")
+  if (!contentType?.includes("application/json")) {
+    // If we got HTML instead of JSON, provide a more helpful error message
+    const text = await response.text()
+    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+      throw new Error(`Server returned HTML instead of JSON. The API endpoint might be unavailable or returning an error page.`)
+    } else {
+      throw new Error(`Invalid response type: ${contentType}. Expected JSON.`)
+    }
+  }
+
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`)
   }
@@ -86,6 +105,18 @@ export async function generateFlashCards(text: string) {
     body: JSON.stringify({ text: text }),
   })
 
+  // Check content type before attempting to parse JSON
+  const contentType = response.headers.get("content-type")
+  if (!contentType?.includes("application/json")) {
+    // If we got HTML instead of JSON, provide a more helpful error message
+    const text = await response.text()
+    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+      throw new Error(`Server returned HTML instead of JSON. The API endpoint might be unavailable or returning an error page.`)
+    } else {
+      throw new Error(`Invalid response type: ${contentType}. Expected JSON.`)
+    }
+  }
+
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`)
   }
@@ -105,6 +136,18 @@ export async function generateStudyPlan(topic: string) {
     },
     body: JSON.stringify({ topic: topic }),
   })
+
+  // Check content type before attempting to parse JSON
+  const contentType = response.headers.get("content-type")
+  if (!contentType?.includes("application/json")) {
+    // If we got HTML instead of JSON, provide a more helpful error message
+    const text = await response.text()
+    if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+      throw new Error(`Server returned HTML instead of JSON. The API endpoint might be unavailable or returning an error page.`)
+    } else {
+      throw new Error(`Invalid response type: ${contentType}. Expected JSON.`)
+    }
+  }
 
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`)

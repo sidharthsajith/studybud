@@ -37,7 +37,9 @@ export function ExtractKeyPoints() {
       setResult(data)
     } catch (err) {
       console.error("Error extracting key points:", err)
-      setError(err instanceof Error ? err.message : "An unknown error occurred")
+      // Handle HTML response errors more gracefully
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred"
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
