@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -11,8 +11,8 @@ from studybud_backend.ai_services import (
     generate_study_plan,
     KeyPoints,
     FlashCard,
-    StudyPlan
 )
+from studybud_backend.voice_ai import VoiceAIService, TranscriptionResult, KeyPointsResult
 
 app = FastAPI(
     title="StudyBud API",
@@ -103,33 +103,56 @@ async def create_flash_cards(notes_input: NotesInput):
             }
         )
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to StudyBud API - Your AI Study Assistant"}
 
+voice_ai_service = VoiceAIService()
 
-@app.post("/generate-study-plan", response_model=StudyPlan)
-async def generate_study_plan_endpoint(plan_input: StudyPlanInput):
+@app.post("/transcribe-audio", response_model=TranscriptionResult)
+async def transcribe_audio(file: UploadFile = File(...)):
     """
-    Generate optimized study plan based on schedule and tasks
+    Upload and transcribe an audio file
     """
     try:
-        if not plan_input.topic:
-            raise HTTPException(status_code=422, detail="No topic provided")
-        result = generate_study_plan(plan_input.topic)
+        # Save the uploaded file temporarily
+        temp_path = f"temp_{file.filename}"
+        with open(temp_path, "wb") as f:
+            f.write(await file.read())
+        
+        # Transcribe the audio
+        result = voice_ai_service.transcribe_audio(temp_path)
+        
+        # Clean up the temp file
+        os.remove(temp_path)
+        
         return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail={
-                "error": "Study plan generation failed",
+                "error": "Audio processing failed",
                 "message": str(e),
-                "type": "server_error"
+                "type": "audio_processing_error"
             }
         )
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to StudyBud API - Your AI Study Assistant"}
+@app.post("/analyze-audio", response_model=KeyPointsResult)
+async def analyze_audio(transcription: str):
+    """
+    Analyze transcribed audio content to extract key points
+    """
+    try:
+        return voice_ai_service.analyze_audio_content(transcription)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Audio analysis failed",
+                "message": str(e),
+                "type": "analysis_error"
+            }
+        )
 
 if __name__ == "__main__":
     import uvicorn
