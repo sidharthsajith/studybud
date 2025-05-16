@@ -1,4 +1,6 @@
 import logging
+import os
+import json
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,7 +10,6 @@ from typing import List, Dict
 from studybud_backend.ai_services import (
     generate_key_points,
     generate_flash_cards,
-    generate_study_plan,
     KeyPoints,
     FlashCard,
 )
@@ -108,6 +109,22 @@ async def root():
     return {"message": "Welcome to StudyBud API - Your AI Study Assistant"}
 
 voice_ai_service = VoiceAIService()
+@app.post("/analyze-audio", response_model=KeyPointsResult)
+async def analyze_audio(transcription: str):
+    """
+    Analyze transcribed audio content to extract key points
+    """
+    try:
+        return voice_ai_service.analyze_audio_content(transcription)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Audio analysis failed",
+                "message": str(e),
+                "type": "analysis_error"
+            }
+        )
 
 @app.post("/transcribe-audio", response_model=TranscriptionResult)
 async def transcribe_audio(file: UploadFile = File(...)):
@@ -137,22 +154,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
             }
         )
 
-@app.post("/analyze-audio", response_model=KeyPointsResult)
-async def analyze_audio(transcription: str):
-    """
-    Analyze transcribed audio content to extract key points
-    """
-    try:
-        return voice_ai_service.analyze_audio_content(transcription)
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "Audio analysis failed",
-                "message": str(e),
-                "type": "analysis_error"
-            }
-        )
+
 
 if __name__ == "__main__":
     import uvicorn
