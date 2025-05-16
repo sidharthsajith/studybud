@@ -28,7 +28,6 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('api_requests.log'),
         logging.StreamHandler()
     ]
 )
@@ -43,34 +42,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Request/Response logging middleware
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    start_time = datetime.now()
-    
-    # Log request details
-    request_body = await request.body()
-    logger.info(
-        f"Incoming request: {request.method} {request.url.path} | "
-        f"Headers: {dict(request.headers)} | "
-        f"Body: {request_body.decode() if request_body else None}"
-    )
-    
-    response = await call_next(request)
-    
-    # Log response details
-    process_time = (datetime.now() - start_time).total_seconds() * 1000
-    response_body = b""
-    if hasattr(response, 'body'):
-        response_body = await response.body()
-    
-    logger.info(
-        f"Outgoing response: Status {response.status_code} | "
-        f"Time: {process_time:.2f}ms | "
-        f"Body: {response_body.decode() if response_body else None}"
-    )
-    
-    return response
+
 
 class NotesInput(BaseModel):
     text: str = Field(..., description="The text content to process")

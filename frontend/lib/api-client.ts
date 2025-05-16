@@ -48,6 +48,15 @@ export async function organizeNotes(text: string) {
     },
     body: requestBody,
   })
+
+  // Add detailed error logging
+  const responseClone = response.clone()
+  try {
+    // Existing response handling
+  } catch (error) {
+    console.error('[organizeNotes] Full error response:', await responseClone.text())
+    throw error
+  }
   console.log('[organizeNotes] Response status:', response.status)
   console.log('[organizeNotes] Response headers:', Object.fromEntries(response.headers.entries()))
 
