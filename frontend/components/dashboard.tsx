@@ -1,6 +1,6 @@
 "use client"
 
-import { BookOpen, Brain, Calendar, FileText, Layers, Lightbulb } from "lucide-react"
+import { FileText, Lightbulb, Mic} from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,6 +25,15 @@ export function Dashboard() {
       color: "bg-green-100 dark:bg-green-900",
       iconColor: "text-green-500",
       delay: 0.3,
+    },
+    {
+      title: "Voice Notes",
+      description: "Record and transcribe lectures with key point extraction",
+      icon: Mic,
+      href: "/voice-note",
+      color: "bg-purple-100 dark:bg-purple-900",
+      iconColor: "text-purple-500",
+      delay: 0.4,
     },
   ]
 
