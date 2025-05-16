@@ -8,10 +8,7 @@ from typing import List, Dict
 from studybud_backend.ai_services import (
     generate_key_points,
     generate_flash_cards,
-    organize_notes,
     generate_study_plan,
-    NoteCategory,
-    NotesOrganization,
     KeyPoints,
     FlashCard,
     StudyPlan
@@ -20,7 +17,8 @@ from studybud_backend.ai_services import (
 app = FastAPI(
     title="StudyBud API",
     description="AI-powered study assistant API for organizing notes, generating flashcards, and creating quizzes",
-    version="1.0.0"
+    version="1.0.0",
+    max_request_size=10 * 1024 * 1024  # 10MB payload limit
 )
 
 # Configure logging
@@ -36,10 +34,11 @@ logger = logging.getLogger(__name__)
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://192.168.1.5:3000/"],  # Frontend default port
+    allow_origins=["http://localhost:3000", "http://192.168.1.5:3000"],  # Frontend origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 
@@ -47,39 +46,18 @@ app.add_middleware(
 class NotesInput(BaseModel):
     text: str = Field(..., description="The text content to process")
 
+class StudyPlanInput(BaseModel):
+    topic: str = Field(..., description="The study topic to plan for")
+
 class QuizResponse(BaseModel):
     knowledge_gaps: List[str]
     answer_improvements: Dict[str, str]
     study_recommendations: List[str]
     overall_score: float
 
-class StudyPlan(BaseModel):
-    schedule: Dict[str, List[str]] = Field(description="Daily schedule with time slots and tasks")
-    priority_topics: List[str] = Field(description="List of topics to prioritize")
-    estimated_time: Dict[str, float] = Field(description="Estimated time required for each topic")
-    resources: Dict[str, List[str]] = Field(description="Recommended resources for each topic")
 
-@app.post("/organize-notes", response_model=NotesOrganization)
-async def organize_notes_endpoint(notes_input: NotesInput):
-    """
-    Organize and categorize study notes by topic and concept
-    """
-    try:
-        if not notes_input.text:
-            raise HTTPException(status_code=422, detail="No notes provided")
-        result = organize_notes(notes_input.text)
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "Note organization failed",
-                "message": str(e),
-                "type": "server_error"
-            }
-        )
+
+
 
 @app.post("/extract-key-points", response_model=KeyPoints)
 async def extract_key_points(notes_input: NotesInput):
@@ -97,7 +75,7 @@ async def extract_key_points(notes_input: NotesInput):
         raise HTTPException(
             status_code=500,
             detail={
-                "error": "Note organization failed",
+                "error": "Study plan generation failed",
                 "message": str(e),
                 "type": "server_error"
             }
@@ -119,7 +97,7 @@ async def create_flash_cards(notes_input: NotesInput):
         raise HTTPException(
             status_code=500,
             detail={
-                "error": "Note organization failed",
+                "error": "Study plan generation failed",
                 "message": str(e),
                 "type": "server_error"
             }
@@ -128,14 +106,14 @@ async def create_flash_cards(notes_input: NotesInput):
 
 
 @app.post("/generate-study-plan", response_model=StudyPlan)
-async def generate_study_plan_endpoint(schedule_data: str):
+async def generate_study_plan_endpoint(plan_input: StudyPlanInput):
     """
     Generate optimized study plan based on schedule and tasks
     """
     try:
-        if not notes_input.text:
-            raise HTTPException(status_code=422, detail="No notes provided")
-        result = generate_study_plan(schedule_data)
+        if not plan_input.topic:
+            raise HTTPException(status_code=422, detail="No topic provided")
+        result = generate_study_plan(plan_input.topic)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -143,7 +121,7 @@ async def generate_study_plan_endpoint(schedule_data: str):
         raise HTTPException(
             status_code=500,
             detail={
-                "error": "Note organization failed",
+                "error": "Study plan generation failed",
                 "message": str(e),
                 "type": "server_error"
             }

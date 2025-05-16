@@ -9,15 +9,6 @@ import { fadeIn, floatAnimation, pulseAnimation } from "@/lib/motion"
 export function Dashboard() {
   const features = [
     {
-      title: "Organize Notes",
-      description: "Categorize your study notes by topic and concept",
-      icon: Layers,
-      href: "/organize-notes",
-      color: "bg-purple-100 dark:bg-purple-900",
-      iconColor: "text-purple-500",
-      delay: 0.1,
-    },
-    {
       title: "Extract Key Points",
       description: "Identify the most important concepts from your notes",
       icon: Lightbulb,
@@ -34,15 +25,6 @@ export function Dashboard() {
       color: "bg-green-100 dark:bg-green-900",
       iconColor: "text-green-500",
       delay: 0.3,
-    },
-    {
-      title: "Create Study Plan",
-      description: "Get an optimized study schedule based on your availability",
-      icon: Calendar,
-      href: "/study-plan",
-      color: "bg-amber-100 dark:bg-amber-900",
-      iconColor: "text-amber-500",
-      delay: 0.4,
     },
   ]
 

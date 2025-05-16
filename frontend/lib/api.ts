@@ -26,17 +26,6 @@ const handleResponse = async <T>(response: Response): Promise<ApiResponse<T>> =>
 
 // API Endpoints
 export const api = {
-  organizeNotes: async (notesCorpus: string): Promise<ApiResponse<{
-    categories: Record<string, unknown>[]
-    concept_map: Record<string, string[]>
-  }>> => {
-    try {
-      const response = await organizeNotes(notesCorpus)
-      return handleResponse(response)
-    } catch (error) {
-      return { error: 'Failed to organize notes' }
-    }
-  },
 
   extractKeyPoints: async (notesCorpus: string): Promise<ApiResponse<{
     key_points: Record<string, unknown>[]
