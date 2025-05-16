@@ -31,21 +31,34 @@ declare global {
 /**
  * Organize and categorize study notes by topic and concept
  */
-export async function organizeNotes(notesCorpus: string) {
+export async function organizeNotes(text: string) {
+  console.log('[organizeNotes] Starting to organize notes...')
+  console.log('[organizeNotes] Input corpus length:', text.length)
+
   const baseUrl = await getApiBaseUrl()
+  console.log('[organizeNotes] Using API base URL:', baseUrl)
+
+  const requestBody = JSON.stringify({ text: text })
+  console.log('[organizeNotes] Request payload:', requestBody)
+
   const response = await fetch(`${baseUrl}organize-notes`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ notes_corpus: notesCorpus }),
+    body: requestBody,
   })
+  console.log('[organizeNotes] Response status:', response.status)
+  console.log('[organizeNotes] Response headers:', Object.fromEntries(response.headers.entries()))
 
   // Check content type before attempting to parse JSON
   const contentType = response.headers.get("content-type")
+  console.log('[organizeNotes] Content-Type:', contentType)
+
   if (!contentType?.includes("application/json")) {
     // If we got HTML instead of JSON, provide a more helpful error message
     const text = await response.text()
+    console.error('[organizeNotes] Received non-JSON response:', text)
     if (text.includes("<!DOCTYPE") || text.includes("<html")) {
       throw new Error(`Server returned HTML instead of JSON. The API endpoint might be unavailable or returning an error page.`)
     } else {
@@ -54,10 +67,13 @@ export async function organizeNotes(notesCorpus: string) {
   }
 
   if (!response.ok) {
+    console.error('[organizeNotes] API error:', response.status)
     throw new Error(`API error: ${response.status}`)
   }
 
-  return response.json()
+  const jsonResponse = await response.json()
+  console.log('[organizeNotes] Successfully parsed JSON response:', jsonResponse)
+  return jsonResponse
 }
 
 /**
@@ -75,9 +91,12 @@ export async function extractKeyPoints(text: string) {
 
   // Check content type before attempting to parse JSON
   const contentType = response.headers.get("content-type")
+  console.log('[organizeNotes] Content-Type:', contentType)
+
   if (!contentType?.includes("application/json")) {
     // If we got HTML instead of JSON, provide a more helpful error message
     const text = await response.text()
+    console.error('[organizeNotes] Received non-JSON response:', text)
     if (text.includes("<!DOCTYPE") || text.includes("<html")) {
       throw new Error(`Server returned HTML instead of JSON. The API endpoint might be unavailable or returning an error page.`)
     } else {
@@ -86,10 +105,13 @@ export async function extractKeyPoints(text: string) {
   }
 
   if (!response.ok) {
+    console.error('[organizeNotes] API error:', response.status)
     throw new Error(`API error: ${response.status}`)
   }
 
-  return response.json()
+  const jsonResponse = await response.json()
+  console.log('[organizeNotes] Successfully parsed JSON response:', jsonResponse)
+  return jsonResponse
 }
 
 /**
@@ -107,9 +129,12 @@ export async function generateFlashCards(text: string) {
 
   // Check content type before attempting to parse JSON
   const contentType = response.headers.get("content-type")
+  console.log('[organizeNotes] Content-Type:', contentType)
+
   if (!contentType?.includes("application/json")) {
     // If we got HTML instead of JSON, provide a more helpful error message
     const text = await response.text()
+    console.error('[organizeNotes] Received non-JSON response:', text)
     if (text.includes("<!DOCTYPE") || text.includes("<html")) {
       throw new Error(`Server returned HTML instead of JSON. The API endpoint might be unavailable or returning an error page.`)
     } else {
@@ -118,10 +143,13 @@ export async function generateFlashCards(text: string) {
   }
 
   if (!response.ok) {
+    console.error('[organizeNotes] API error:', response.status)
     throw new Error(`API error: ${response.status}`)
   }
 
-  return response.json()
+  const jsonResponse = await response.json()
+  console.log('[organizeNotes] Successfully parsed JSON response:', jsonResponse)
+  return jsonResponse
 }
 
 /**
@@ -139,9 +167,12 @@ export async function generateStudyPlan(topic: string) {
 
   // Check content type before attempting to parse JSON
   const contentType = response.headers.get("content-type")
+  console.log('[organizeNotes] Content-Type:', contentType)
+
   if (!contentType?.includes("application/json")) {
     // If we got HTML instead of JSON, provide a more helpful error message
     const text = await response.text()
+    console.error('[organizeNotes] Received non-JSON response:', text)
     if (text.includes("<!DOCTYPE") || text.includes("<html")) {
       throw new Error(`Server returned HTML instead of JSON. The API endpoint might be unavailable or returning an error page.`)
     } else {
@@ -150,8 +181,11 @@ export async function generateStudyPlan(topic: string) {
   }
 
   if (!response.ok) {
+    console.error('[organizeNotes] API error:', response.status)
     throw new Error(`API error: ${response.status}`)
   }
 
-  return response.json()
+  const jsonResponse = await response.json()
+  console.log('[organizeNotes] Successfully parsed JSON response:', jsonResponse)
+  return jsonResponse
 }

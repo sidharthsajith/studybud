@@ -31,10 +31,10 @@ export const api = {
     concept_map: Record<string, string[]>
   }>> => {
     try {
-      const response = await fetch('/organize-notes', {
+      const response = await fetch('http://127.0.0.1:8000/organize-notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes_corpus: notesCorpus })
+        body: JSON.stringify({ text: notesCorpus })
       })
       return handleResponse(response)
     } catch (error) {
@@ -47,10 +47,10 @@ export const api = {
     supporting_details: Record<string, string[]>
   }>> => {
     try {
-      const response = await fetch('/extract-key-points', {
+      const response = await fetch('http://127.0.0.1:8000/extract-key-points', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes_corpus: notesCorpus })
+        body: JSON.stringify({ text: notesCorpus })
       })
       return handleResponse(response)
     } catch (error) {
@@ -64,10 +64,10 @@ export const api = {
     difficulty: number
   }>>> => {
     try {
-      const response = await fetch('/generate-flash-cards', {
+      const response = await fetch('http://127.0.0.1:8000/generate-flash-cards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes_corpus: notesCorpus })
+        body: JSON.stringify({ text: notesCorpus })
       })
       return handleResponse(response)
     } catch (error) {
@@ -82,7 +82,7 @@ export const api = {
     resources: Record<string, string[]>
   }>> => {
     try {
-      const response = await fetch(`/generate-study-plan?schedule_data=${encodeURIComponent(scheduleData)}`, {
+      const response = await fetch(`http://127.0.0.1:8000/generate-study-plan?schedule_data=${encodeURIComponent(scheduleData)}`, {
         method: 'POST'
       })
       return handleResponse(response)
