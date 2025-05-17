@@ -81,21 +81,7 @@ export function VoiceNoteCapture() {
       const result = await response.json()
       setTranscription(result)
       
-      // Analyze the transcription for key points
-      const analysisResponse = await fetch("http://localhost:8000/analyze-audio", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ transcription: result.text })
-      })
-      
-      if (!analysisResponse.ok) {
-        throw new Error(`HTTP error! status: ${analysisResponse.status}`)
-      }
-      
-      const analysisResult = await analysisResponse.json()
-      setKeyPoints(analysisResult)
+
     } catch (err) {
       console.error("Error processing audio:", err)
       setError(err instanceof Error ? err.message : "An unknown error occurred")
@@ -150,7 +136,7 @@ export function VoiceNoteCapture() {
                 ) : (
                   <ChevronRight className="mr-2 h-5 w-5" />
                 )}
-                {loading ? "Processing..." : "Transcribe & Analyze"}
+                {loading ? "Processing..." : "Transcribe"}
               </Button>
             )}
           </div>
