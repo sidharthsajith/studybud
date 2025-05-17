@@ -14,15 +14,6 @@ from together import Together
 
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 
-MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
-
-# Common headers for Together AI API requests
-def get_together_headers():
-    return {
-        "Authorization": f"Bearer {TOGETHER_API_KEY}",
-        "Content-Type": "application/json",
-        "User-Agent": "StudyBud/1.0.0"
-    }
 
 def extract_data(URL: str) -> str:
     """

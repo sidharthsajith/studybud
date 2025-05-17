@@ -14,6 +14,7 @@ from studybud_backend.ai_services import (
     FlashCard,
 )
 from studybud_backend.voice_ai import VoiceAIService, TranscriptionResult, KeyPointsResult
+from studybud_backend.research import research_paper, Research
 
 app = FastAPI(
     title="StudyBud API",
@@ -55,6 +56,9 @@ class QuizResponse(BaseModel):
     answer_improvements: Dict[str, str]
     study_recommendations: List[str]
     overall_score: float
+
+class ResearchInput(BaseModel):
+    url: str = Field(..., description="The URL of the research paper to analyze")
 
 
 
@@ -154,6 +158,27 @@ async def transcribe_audio(file: UploadFile = File(...)):
             }
         )
 
+@app.post("/analyze-research", response_model=Research)
+async def analyze_research(research_input: ResearchInput):
+    """
+    Analyze a research paper from a given URL
+    """
+    try:
+        if not research_input.url:
+            raise HTTPException(status_code=422, detail="No URL provided")
+        result = research_paper(research_input.url)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Research paper analysis failed",
+                "message": str(e),
+                "type": "server_error"
+            }
+        )
 
 
 if __name__ == "__main__":
