@@ -56,8 +56,8 @@ npm run dev
 ```
 
 ## 🖼️ Screenshots
-![Study Interface](/images/studymode.png)
-![Progress Dashboard](images/dashboard.png)
+![Study Interface](/images/Screenshot%202025-05-19%20at%2010.58.17%E2%80%AFPM.png)
+![Progress Dashboard](/images/Screenshot%202025-05-19%20at%2010.58.28%E2%80%AFPM.png)
 
 ## 📜 License
 MIT License
