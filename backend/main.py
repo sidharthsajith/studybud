@@ -7,14 +7,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict
+from studybud_backend.voice_ai import VoiceAIService, TranscriptionResult
+from studybud_backend.content_gen import (
+    generate_assignment,
+    assignment_helper,
+    enhance_assignment,
+    enhancer_assignment,
+)
 from studybud_backend.ai_services import (
     generate_key_points,
     generate_flash_cards,
     KeyPoints,
     FlashCard,
 )
-from studybud_backend.voice_ai import VoiceAIService, TranscriptionResult, KeyPointsResult
-from studybud_backend.research import research_paper, Research
+from studybud_backend.voice_ai import VoiceAIService, TranscriptionResult
 
 app = FastAPI(
     title="StudyBud API",
@@ -48,6 +54,12 @@ app.add_middleware(
 class NotesInput(BaseModel):
     text: str = Field(..., description="The text content to process")
 
+class create_assignment(BaseModel):
+    text: str = Field(..., description="The text content to process")
+
+class enhance_assignment(BaseModel):
+    text: str = Field(..., description="The text content to process")
+
 class StudyPlanInput(BaseModel):
     topic: str = Field(..., description="The study topic to plan for")
 
@@ -57,12 +69,12 @@ class QuizResponse(BaseModel):
     study_recommendations: List[str]
     overall_score: float
 
-class ResearchInput(BaseModel):
-    url: str = Field(..., description="The URL of the research paper to analyze")
 
 
 
-
+@app.get("/")
+async def root():
+    return {"message": "Welcome to StudyBud API - Your AI Study Assistant"}
 
 @app.post("/extract-key-points", response_model=KeyPoints)
 async def extract_key_points(notes_input: NotesInput):
@@ -108,27 +120,50 @@ async def create_flash_cards(notes_input: NotesInput):
             }
         )
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to StudyBud API - Your AI Study Assistant"}
-
-voice_ai_service = VoiceAIService()
-@app.post("/analyze-audio", response_model=KeyPointsResult)
-async def analyze_audio(transcription: str):
+@app.post("/assignment-help", response_model=assignment_helper)
+async def create_assignment(notes_input: create_assignment):
     """
-    Analyze transcribed audio content to extract key points
+    Generate an assignment based on study notes
     """
     try:
-        return voice_ai_service.analyze_audio_content(transcription)
+        if not notes_input.text:
+            raise HTTPException(status_code=422, detail="No notes provided")
+        result = generate_assignment(notes_input.text)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail={
-                "error": "Audio analysis failed",
+                "error": "Assignment generation failed",
                 "message": str(e),
-                "type": "analysis_error"
+                "type": "server_error"
             }
         )
+
+@app.post("/enhance-assignment", response_model=enhancer_assignment)
+async def enhance_assignment(notes_input: enhance_assignment):
+    """
+    Enhance an assignment based on study notes
+    """
+    try:
+        if not notes_input.text:
+            raise HTTPException(status_code=422, detail="No notes provided")
+        result = enhance_assignment(notes_input.text)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Assignment generation failed",
+                "message": str(e),
+                "type": "server_error"
+            }
+        )      
+
 
 @app.post("/transcribe-audio", response_model=TranscriptionResult)
 async def transcribe_audio(file: UploadFile = File(...)):
@@ -142,6 +177,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
             f.write(await file.read())
         
         # Transcribe the audio
+        voice_ai_service = VoiceAIService()
         result = voice_ai_service.transcribe_audio(temp_path)
         
         # Clean up the temp file
@@ -157,29 +193,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
                 "type": "audio_processing_error"
             }
         )
-
-@app.post("/analyze-research", response_model=Research)
-async def analyze_research(research_input: ResearchInput):
-    """
-    Analyze a research paper from a given URL
-    """
-    try:
-        if not research_input.url:
-            raise HTTPException(status_code=422, detail="No URL provided")
-        result = research_paper(research_input.url)
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "Research paper analysis failed",
-                "message": str(e),
-                "type": "server_error"
-            }
-        )
-
+        
 
 if __name__ == "__main__":
     import uvicorn
