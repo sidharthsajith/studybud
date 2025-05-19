@@ -10,6 +10,11 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
+  // Refresh the session to ensure it's up to date
+  if (session) {
+    await supabase.auth.getSession()
+  }
+
   // If there's no session and the user is trying to access a protected route
   if (!session && !req.nextUrl.pathname.startsWith("/auth")) {
     const redirectUrl = req.nextUrl.clone()
@@ -21,6 +26,7 @@ export async function middleware(req: NextRequest) {
   if (session && req.nextUrl.pathname.startsWith("/auth")) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = "/"
+    redirectUrl.searchParams.set("from", req.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
