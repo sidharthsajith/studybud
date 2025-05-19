@@ -1,85 +1,51 @@
-# StudyBud - Your Comprehensive AI Learning Companion
+# StudyBud - Submission for the Neighborhood Program
 
 ## 👋 Introduction
-StudyBud is an all-in-one AI-powered learning platform that transforms how you study, research, write, and master new subjects. By combining advanced AI capabilities with thoughtful learning design, StudyBud creates a personalized educational environment that adapts to your unique learning style.
+StudyBud is an AI-powered learning platform designed to help students master complex subjects through intelligent study tools. Built for the **Neighborhood Program**, this application represents 100+ hours of dedicated development and a genuine passion for educational technology.
 
-## ✨ Core Features
-### 1. Intelligent Study Assistant
-- Smart Note Organization
-- AI-Generated Study Materials
-- Knowledge Gap Analysis
-- Interactive Study Sessions
-- Exam Preparation
+## ✨ About the Neighborhood Program
+The Neighborhood Program is a selective developer residency offering:
+- Guaranteed housing in San Francisco
+- Flight stipend & living support
+- Community for developers who ship impactful projects
 
-### 2. Voice & Audio Learning Tools
-- Voice Note Capture
-- Audio Analysis
-- Sentiment and Engagement Tracking
-- Voice-Guided Reviews
-- Voice Commands
-
-### 3. Writing & Content Creation Assistant
-- Creative Prompts
-- Draft Enhancement
-- Citation Assistant
-- Writer's Block Solutions
-- Content Outlining
-
-### 4. Language Learning Integration
-- Multi-Language Support
-- Vocabulary Building
-- Grammar Assistance
-- Pronunciation Practice
-- Cultural Context
-
-### 5. Collaborative Knowledge Hub
-- Shared Study Spaces
-- Community Q&A
-- Expert Verification
-- Resource Recommendations
-- Real-time Collaboration
-
-### 6. Research & Academic Tools
-- Paper Analysis
-- Literature Review Generator
-- Concept Mapping
-- Methodology Comparison
-- Research Question Development
-
-### 7. Personalized Learning Pathways
-- Skill Assessment
-- Custom Curriculum Design
-- Resource Curation
-- Progress Tracking
-- Adaptive Difficulty
+## 🚀 Features
+- **AI-Driven Study Insights**: Real-time knowledge gap analysis
+- **Multi-Mode Learning**: Notes, quizzes & flashcards integration
+- **Progress Tracking**: Detailed study analytics dashboard
+- **Smart Scheduling**: AI-generated study recommendations
+- **Modern Interface**: Dark/light mode with accessibility focus
 
 ## 🛠️ Tech Stack
-### Backend
-- Core: Python with FastAPI
-- Database: PostgreSQL + Vector database
-- AI Engine: Together AI API integration
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + Shadcn UI
+- **AI**: OpenAI API integration
+- **Tools**: Lucide Icons, date-fns
 
-### Frontend
-- Framework: React with TypeScript
-- Design System: Custom with accessibility
-- State Management: Redux
-- Visualization: D3.js
+## ⏱️ Development Journey
+- **100+ Hours** invested in core functionality
+- **Modular Architecture**: Scalable component library
+- **Performance Optimized**: SSR + client-side hydration
+- **Continuous Iteration**: 15+ feature iterations
 
-### Data Processing
-- Natural Language Processing
-- Speech Processing
-- Document Understanding
-- Knowledge Graph
+## ⚙️ Setup
+```bash
+npm install
+npm run dev
+```
 
-## ⚙️ Setup and Installation
-1. Clone this repository
-2. Install dependencies: `pip install -r requirements.txt`
-3. Configure environment variables
-4. Run the backend: `uvicorn main:app --reload`
-5. Start the frontend: `npm run dev`
-
-## 📞 Contact
-For inquiries or support, please contact [Your Contact Information].
+## 🖼️ Screenshots
+![Study Interface](/images/studymode.png)
+![Progress Dashboard](images/dashboard.png)
 
 ## 📜 License
-This project is licensed under the MIT License.
+MIT License
+
+## 🙏 Acknowledgements
+- Neighborhood Program team
+- TogetherAI for AI capabilities
+- Shadcn UI component library
+
+## 📞 Contact
+sidharthsajith008@gmail.com | GitHub: @sidharthsajith
