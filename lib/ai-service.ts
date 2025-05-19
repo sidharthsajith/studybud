@@ -43,3 +43,41 @@ export async function generateResearchQuestions(topic: string) {
   const prompt = `Generate 5 potential research questions related to the following topic:\n\n${topic}`
   return generateCompletion(prompt)
 }
+
+export async function analyzeLanguage(text: string, language: string) {
+  const prompt = `Analyze the following text in ${language}. Provide feedback on grammar, vocabulary, and fluency. Also provide a translation to English, identify any errors, and suggest improvements.
+
+Text: ${text}
+
+Please format your response as a JSON object with the following structure:
+{
+  "translation": "English translation of the text",
+  "grammar_issues": [
+    {"error": "Description of grammar error", "correction": "Suggested correction"}
+  ],
+  "vocabulary_level": "Beginner/Intermediate/Advanced",
+  "fluency_score": "Score from 1-10",
+  "vocabulary": ["List", "of", "notable", "vocabulary", "words", "used"],
+  "suggestions": ["Suggestion 1", "Suggestion 2"]
+}
+`
+
+  const response = await generateCompletion(prompt)
+
+  try {
+    // Try to parse the response as JSON
+    return JSON.parse(response)
+  } catch (error) {
+    // If parsing fails, return a structured object with the raw response
+    console.error("Error parsing language analysis response:", error)
+    return {
+      translation: "Translation could not be generated",
+      grammar_issues: [],
+      vocabulary_level: "Unknown",
+      fluency_score: 0,
+      vocabulary: [],
+      suggestions: ["Try again with a different text"],
+      raw_response: response,
+    }
+  }
+}
