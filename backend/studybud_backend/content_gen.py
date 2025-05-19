@@ -51,24 +51,25 @@ def generate_assignment(assignment: str) -> assignment_helper:
         )
 
     output = json.loads(extract.choices[0].message.content)
-    return (output)
+    return assignment_helper.model_validate(output)
 
 
 
 def enhance_assignment(assignment: str) -> enhancer_assignment:
     """
-    Generates a title and a list of points to be included in the assignment.
+    Generates tips to improve the quality of the assignment.
     Args:
-        assignment (str): The assignment to be completed.
+        assignment (str): The assignment to be enhanced.
     Returns:
-        assignment_helper: A assignment_helper object containing the title and points.
+        enhancer_assignment: An enhancer_assignment object containing improvement tips.
     """
-    client = together.Together(api_key=os.getenv("TOGETHER_API_KEY"))
-    extract = client.chat.completions.create(
+    try:
+        client = together.Together(api_key=os.getenv("TOGETHER_API_KEY"))
+        extract = client.chat.completions.create(
             messages=[
                 {
                     "role": "system",
-                    "content": "The following is an assigment to be completed by the user. I want you to generate a list of tips to improve the quality of the assignment. Only answer in JSON.",
+                    "content": "The following is an assignment to be completed by the user. Generate a list of tips to improve the quality of the assignment. Provide tips for clarity, structure, writing style, vocabulary, grammar, coherence, logical flow, readability, and overall improvement. Ensure all tips are in list format except writing_style which should be a string. Only answer in JSON format.",
                 },
                 {
                     "role": "user",
@@ -80,8 +81,16 @@ def enhance_assignment(assignment: str) -> enhancer_assignment:
                 "type": "json_object",
                 "schema": enhancer_assignment.model_json_schema(),
             },
-    )
-    return extract.choices[0].message.content
+        )
 
+        if not extract.choices or not extract.choices[0].message or not extract.choices[0].message.content:
+            raise ValueError("Invalid response from Together API")
 
-
+        response_content = json.loads(extract.choices[0].message.content)
+        if isinstance(response_content, dict):
+            return enhancer_assignment.model_validate(response_content)
+        raise ValueError("API response is not a valid dictionary")
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse API response: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Error enhancing assignment: {str(e)}")

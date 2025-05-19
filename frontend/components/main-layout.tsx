@@ -47,7 +47,8 @@ export function MainLayout({ children }: MainLayoutProps) {
           <div className="flex items-center gap-6">
               <span className="font-medium">StudyBud</span>
               <nav className="hidden md:flex items-center gap-4">
-              <a href="/" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Home</a>
+                <a href="/" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Home</a>
+                <a href="/enhance-assignment" className="text-sm hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary">Assignment Enhancement</a>
               </nav>
               <Drawer>
                 <DrawerTrigger asChild>
@@ -64,6 +65,8 @@ export function MainLayout({ children }: MainLayoutProps) {
                     <DrawerTitle>Navigation Menu</DrawerTitle>
                   </DrawerHeader>
                   <nav className="flex flex-col gap-2 p-4">
+                    <a href="/" className="p-2 hover:bg-accent rounded-md">Home</a>
+                    <a href="/enhance-assignment" className="p-2 hover:bg-accent rounded-md">Assignment Enhancement</a>
                     <a href="/dashboard" className="p-2 hover:bg-accent rounded-md">Dashboard</a>
                     <a href="/courses" className="p-2 hover:bg-accent rounded-md">Courses</a>
                     <a href="/progress" className="p-2 hover:bg-accent rounded-md">Progress</a>

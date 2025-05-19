@@ -143,14 +143,14 @@ async def create_assignment(notes_input: create_assignment):
         )
 
 @app.post("/enhance-assignment", response_model=enhancer_assignment)
-async def enhance_assignment(notes_input: enhance_assignment):
+async def enhance_assignment_endpoint(notes_input: enhance_assignment):
     """
     Enhance an assignment based on study notes
     """
     try:
         if not notes_input.text:
             raise HTTPException(status_code=422, detail="No notes provided")
-        result = enhance_assignment(notes_input.text)
+        result = await enhance_assignment(notes_input.text)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
