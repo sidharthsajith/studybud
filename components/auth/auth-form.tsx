@@ -35,9 +35,6 @@ export function AuthForm() {
 
       if (error) throw error
 
-      router.push("/")
-      router.refresh()
-
       toast({
         title: "Check your email",
         description: "We've sent you a confirmation link to complete your sign up.",
@@ -67,9 +64,6 @@ export function AuthForm() {
 
       router.push("/")
       router.refresh()
-
-      router.push("/")
-      router.refresh()
     } catch (error: any) {
       toast({
         title: "Error",
@@ -93,9 +87,6 @@ export function AuthForm() {
       })
 
       if (error) throw error
-
-      router.push("/")
-      router.refresh()
     } catch (error: any) {
       toast({
         title: "Error",
