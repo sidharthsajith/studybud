@@ -10,8 +10,8 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "StudyBud - Your AI Learning Companion",
-  description: "An all-in-one AI-powered learning platform",
+  title: "StudyBud - Notes & Image Analysis",
+  description: "A simple AI-powered note-taking and image analysis tool",
     generator: 'v0.dev'
 }
 

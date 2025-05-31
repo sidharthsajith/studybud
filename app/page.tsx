@@ -5,6 +5,7 @@ import { BookOpen, Brain, Calendar, Clock, FileText, Flame, Mic } from "lucide-r
 import { RecentActivity } from "@/components/recent-activity"
 import { UpcomingTasks } from "@/components/upcoming-tasks"
 import { FocusAreas } from "@/components/focus-areas"
+import { NotesEditor } from "@/components/notes/notes-editor"
 
 export default function Dashboard() {
   return (
@@ -145,6 +146,13 @@ export default function Dashboard() {
           <FocusAreas />
         </TabsContent>
       </Tabs>
+      <div className="container mx-auto py-8 pb-20 md:pb-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight">Notes</h1>
+          <p className="text-slate-500">Write, organize, and summarize your notes with AI assistance</p>
+        </div>
+        <NotesEditor />
+      </div>
     </div>
   )
 }
