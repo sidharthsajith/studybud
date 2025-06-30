@@ -4,9 +4,12 @@ import { Search, Brain } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useMobile } from "@/hooks/use-mobile"
 import { ModeToggle } from "@/components/mode-toggle"
+import { useAuth } from "@/contexts/AuthProvider"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export function Header() {
+  const { user, signOut } = useAuth()
   const isMobile = useMobile()
 
   return (
@@ -33,6 +36,11 @@ export function Header() {
         )}
         <div className="flex items-center gap-2 ml-auto">
           <ModeToggle />
+            {user ? (
+              <Button size="sm" variant="secondary" onClick={signOut}>Log out</Button>
+            ) : (
+              <Link href="/login"><Button size="sm">Log in</Button></Link>
+            )}
         </div>
       </div>
     </header>

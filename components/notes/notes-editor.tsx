@@ -11,6 +11,8 @@ import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { supabase } from "@/lib/supabaseClient"
+import { useAuth } from "@/contexts/AuthProvider"
 
 interface Note {
   id: string
@@ -22,6 +24,7 @@ interface Note {
 }
 
 export function NotesEditor() {
+  const { user } = useAuth()
   const [notes, setNotes] = useState<Note[]>([])
   const [currentNote, setCurrentNote] = useState<Note | null>(null)
   const [title, setTitle] = useState("")
@@ -31,7 +34,32 @@ export function NotesEditor() {
   const [summarizing, setSummarizing] = useState(false)
   const { toast } = useToast()
 
-  // Load notes from session storage on component mount
+  // Load notes from supabase (or fallback to session) on component mount
+  useEffect(() => {
+    if (!user) return
+    ;(async () => {
+      const { data, error } = await supabase
+        .from("notes")
+        .select("id,title,content,summary,created_at,updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+
+      if (error) {
+        console.error("Supabase fetch error", error)
+        return
+      }
+      const supabaseNotes = (data ?? []).map((n) => ({
+        id: n.id,
+        title: n.title,
+        content: n.content,
+        summary: n.summary ?? "",
+        createdAt: n.created_at,
+        updatedAt: n.updated_at,
+      })) as Note[]
+      setNotes(supabaseNotes)
+      if (supabaseNotes.length > 0) selectNote(supabaseNotes[0])
+    })()
+  }, [user])
   useEffect(() => {
     const savedNotes = sessionStorage.getItem("studybud-notes")
     if (savedNotes) {
@@ -61,7 +89,11 @@ export function NotesEditor() {
     setSummary(note.summary || "")
   }
 
-  const createNewNote = () => {
+  const createNewNote = async () => {
+    if (!user) {
+      toast({ title: "Login required", description: "Please login first", variant: "destructive" })
+      return
+    }
     const newNote: Note = {
       id: Date.now().toString(),
       title: "Untitled Note",
@@ -70,10 +102,18 @@ export function NotesEditor() {
       updatedAt: new Date().toISOString(),
     }
     setNotes([newNote, ...notes])
+    // Persist to supabase
+    await supabase.from("notes").insert({
+      id: newNote.id,
+      user_id: user.id,
+      title: newNote.title,
+      content: newNote.content,
+      summary: newNote.summary ?? "",
+    })
     selectNote(newNote)
   }
 
-  const saveNote = () => {
+  const saveNote = async () => {
     if (!currentNote) return
 
     setLoading(true)
@@ -105,7 +145,7 @@ export function NotesEditor() {
     }
   }
 
-  const deleteNote = (noteId: string) => {
+  const deleteNote = async (noteId: string) => {
     const updatedNotes = notes.filter((note) => note.id !== noteId)
     setNotes(updatedNotes)
 
