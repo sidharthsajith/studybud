@@ -22,6 +22,26 @@ export async function generateCompletion(prompt: string) {
   }
 }
 
+function extractJson(str: string): any {
+  try {
+    // If already valid JSON
+    return JSON.parse(str);
+  } catch (_) {
+    // Try to find first '{' and last '}'
+    const first = str.indexOf('{');
+    const last = str.lastIndexOf('}');
+    if (first !== -1 && last !== -1) {
+      const slice = str.slice(first, last + 1);
+      try {
+        return JSON.parse(slice);
+      } catch (err) {
+        console.warn('Failed to parse extracted JSON slice', err);
+      }
+    }
+    return null;
+  }
+}
+
 export async function generateFlashcards(notes: string) {
   // Zod schema for structured output
   const flashcardSchema = z.object({
@@ -50,14 +70,11 @@ export async function generateFlashcards(notes: string) {
     response_format: { type: "json_object", schema: jsonSchema },
   })
 
-  try {
-    const raw = completion.choices?.[0]?.message?.content ?? ""
-    const parsed = JSON.parse(raw)
-    return parsed.flashcards ?? []
-  } catch (err) {
-    console.error("Error parsing structured flashcards response", err)
-    return []
-  }
+  const raw = completion.choices?.[0]?.message?.content ?? "";
+  const parsed = extractJson(raw);
+  if (parsed && Array.isArray(parsed.flashcards)) return parsed.flashcards;
+  console.error('Error parsing structured flashcards response', raw);
+  return []; 
 }
 
 export async function generateQuiz(notes: string) {
@@ -89,14 +106,11 @@ export async function generateQuiz(notes: string) {
     response_format: { type: "json_object", schema: jsonSchema },
   })
 
-  try {
-    const raw = completion.choices?.[0]?.message?.content ?? ""
-    const parsed = JSON.parse(raw)
-    return parsed.quiz ?? []
-  } catch (err) {
-    console.error("Error parsing structured quiz response", err)
-    return []
-  }
+  const raw = completion.choices?.[0]?.message?.content ?? "";
+  const parsed = extractJson(raw);
+  if (parsed && Array.isArray(parsed.quiz)) return parsed.quiz;
+  console.error('Error parsing structured quiz response', raw);
+  return []; 
 }
 
 export async function analyzeWriting(text: string) {
