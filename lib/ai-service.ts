@@ -1,9 +1,11 @@
-import Together from "together-ai"
+import Together from "together-ai";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 // Initialize Together AI client
 const together = new Together({
   apiKey: process.env.TOGETHER_API_KEY || "",
-})
+});
 
 export async function generateCompletion(prompt: string) {
   try {
@@ -12,21 +14,89 @@ export async function generateCompletion(prompt: string) {
       messages: [{ role: "user", content: prompt }],
     })
 
-    return completion.choices[0].message.content
+    const content = completion.choices?.[0]?.message?.content
+    return content ?? ""
   } catch (error) {
     console.error("Error generating completion:", error)
     return "Sorry, I encountered an error while processing your request."
   }
 }
 
-export async function generateStudyMaterials(notes: string, type: "quiz" | "flashcards" | "summary") {
-  const prompts = {
-    quiz: `Generate a 5-question quiz based on the following notes:\n\n${notes}\n\nFor each question, provide 4 options and indicate the correct answer.`,
-    flashcards: `Create 5 flashcards based on the following notes:\n\n${notes}\n\nFor each flashcard, provide a front (term/question) and back (definition/answer).`,
-    summary: `Summarize the key points from the following notes:\n\n${notes}\n\nProvide a concise summary highlighting the most important concepts.`,
-  }
+export async function generateFlashcards(notes: string) {
+  // Zod schema for structured output
+  const flashcardSchema = z.object({
+    flashcards: z.array(
+      z.object({
+        front: z.string().describe("Question or term"),
+        back: z.string().describe("Answer or definition"),
+      }),
+    ),
+  })
+  const jsonSchema = zodToJsonSchema(flashcardSchema, { target: "openAi" })
 
-  return generateCompletion(prompts[type])
+  const completion = await together.chat.completions.create({
+    model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    messages: [
+      {
+        role: "system",
+        content: "You are an assistant that only responds with valid JSON that conforms to the given schema.",
+      },
+      {
+        role: "user",
+        content: `Generate flashcards from the following study notes:`,
+      },
+      { role: "user", content: notes },
+    ],
+    response_format: { type: "json_object", schema: jsonSchema },
+  })
+
+  try {
+    const raw = completion.choices?.[0]?.message?.content ?? ""
+    const parsed = JSON.parse(raw)
+    return parsed.flashcards ?? []
+  } catch (err) {
+    console.error("Error parsing structured flashcards response", err)
+    return []
+  }
+}
+
+export async function generateQuiz(notes: string) {
+  // Zod schema for structured output
+  const quizSchema = z.object({
+    quiz: z.array(
+      z.object({
+        question: z.string(),
+        options: z.array(z.string()).length(4),
+        correctAnswer: z.string(),
+      }),
+    ),
+  })
+  const jsonSchema = zodToJsonSchema(quizSchema, { target: "openAi" })
+
+  const completion = await together.chat.completions.create({
+    model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    messages: [
+      {
+        role: "system",
+        content: "You are an assistant that only responds with valid JSON that conforms to the given schema.",
+      },
+      {
+        role: "user",
+        content: `Generate a multiple choice quiz from the following study notes:`,
+      },
+      { role: "user", content: notes },
+    ],
+    response_format: { type: "json_object", schema: jsonSchema },
+  })
+
+  try {
+    const raw = completion.choices?.[0]?.message?.content ?? ""
+    const parsed = JSON.parse(raw)
+    return parsed.quiz ?? []
+  } catch (err) {
+    console.error("Error parsing structured quiz response", err)
+    return []
+  }
 }
 
 export async function analyzeWriting(text: string) {

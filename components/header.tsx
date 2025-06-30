@@ -16,15 +16,15 @@ export function Header() {
     <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
       <div className="flex h-16 items-center justify-between px-4">
         {isMobile && (
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/home" className="flex items-center gap-2">
             <Brain className="w-6 h-6" />
             <span className="text-xl font-bold">StudyBud</span>
           </Link>
         )}
         {!isMobile && (
           <div className="flex items-center flex-1 gap-4 md:gap-8">
-            <h1 className="text-xl font-bold">StudyBud</h1>
-            <div className="relative flex-1 max-w-md">
+            <Link href="/home" className="text-xl font-bold">StudyBud</Link>
+            <div className="relative flex-1 max-w-md ml-4">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
               <Input
                 type="search"

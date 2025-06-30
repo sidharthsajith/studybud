@@ -6,7 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Save, Sparkles, Plus, Trash2, FileText, Copy } from "lucide-react"
+import { Loader2, Save, Sparkles, Plus, Trash2, FileText, Copy, FileQuestion } from "lucide-react"
+import { FlashcardViewer } from "./flashcard-viewer"
+import { QuizViewer } from "./quiz-viewer"
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
@@ -23,8 +25,20 @@ interface Note {
   updatedAt: string
 }
 
+interface Flashcard {
+  front: string
+  back: string
+}
+
+interface QuizQuestion {
+  question: string
+  options: string[]
+  correctAnswer: string
+}
+
 export function NotesEditor() {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [notes, setNotes] = useState<Note[]>([])
   const [currentNote, setCurrentNote] = useState<Note | null>(null)
   const [title, setTitle] = useState("")
@@ -32,7 +46,9 @@ export function NotesEditor() {
   const [summary, setSummary] = useState("")
   const [loading, setLoading] = useState(false)
   const [summarizing, setSummarizing] = useState(false)
-  const { toast } = useToast()
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([])
+  const [quiz, setQuiz] = useState<QuizQuestion[]>([])
 
   // Load notes from supabase (or fallback to session) on component mount
   useEffect(() => {
@@ -244,6 +260,80 @@ export function NotesEditor() {
     }
   }
 
+  const handleGenerateFlashcards = async () => {
+    setIsGenerating(true)
+    try {
+      const response = await fetch("/api/generate-flashcards", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: content,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to generate flashcards")
+      }
+
+      const data = await response.json()
+      setFlashcards(data.flashcards)
+
+      toast({
+        title: "Flashcards generated",
+        description: "Your flashcards have been generated successfully",
+      })
+    } catch (error: any) {
+      console.error("Error generating flashcards:", error)
+      toast({
+        title: "Flashcard generation failed",
+        description: error.message || "Failed to generate flashcards",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleGenerateQuiz = async () => {
+    setIsGenerating(true)
+    try {
+      const response = await fetch("/api/generate-quiz", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: content,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to generate quiz")
+      }
+
+      const data = await response.json()
+      setQuiz(data.quiz)
+
+      toast({
+        title: "Quiz generated",
+        description: "Your quiz has been generated successfully",
+      })
+    } catch (error: any) {
+      console.error("Error generating quiz:", error)
+      toast({
+        title: "Quiz generation failed",
+        description: error.message || "Failed to generate quiz",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-4">
       {/* Notes List */}
@@ -324,6 +414,28 @@ export function NotesEditor() {
                     <Save className="w-4 h-4 mr-2" />
                   )}
                   Save
+                </Button>
+                <Button
+                  onClick={handleGenerateFlashcards}
+                  disabled={isGenerating || !content.trim()}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
+                  )}
+                  Generate Flashcards
+                </Button>
+                <Button
+                  onClick={handleGenerateQuiz}
+                  disabled={isGenerating || !content.trim()}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileQuestion className="w-4 h-4 mr-2" />
+                  )}
+                  Generate Quiz
                 </Button>
               </div>
             </div>

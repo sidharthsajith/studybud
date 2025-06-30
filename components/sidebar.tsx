@@ -8,8 +8,13 @@ import { useMobile } from "@/hooks/use-mobile"
 
 const navItems = [
   {
+    title: "Home",
+    href: "/home",
+    icon: <Brain className="w-5 h-5" />,
+  },
+  {
     title: "Notes",
-    href: "/",
+    href: "/notes",
     icon: <FileText className="w-5 h-5" />,
   },
   {
@@ -51,7 +56,7 @@ export function Sidebar() {
     <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
       <div className="flex flex-col h-full">
         <div className="flex items-center h-16 px-4 border-b border-slate-200 dark:border-slate-800">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/home" className="flex items-center gap-2">
             <Brain className="w-6 h-6" />
             <span className="text-xl font-bold">StudyBud</span>
           </Link>
