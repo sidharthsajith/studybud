@@ -1,35 +1,67 @@
-# StudyBud - Submission for the Neighborhood Program
+# StudyBud
 
-## 👋 Introduction
-StudyBud is an AI-powered learning platform designed to help students master complex subjects through intelligent study tools. Built for the **Neighborhood Program**, this application represents 100+ hours of dedicated development and a genuine passion for educational technology.
+## Overview
+StudyBud is an AI-powered learning platform that helps students organize, study, and master material using intelligent, interactive tools. The following features are fully implemented and available in the current frontend:
 
-## ✨ About the Neighborhood Program
-The Neighborhood Program is a selective developer residency offering:
-- Guaranteed housing in San Francisco
-- Flight stipend & living support
-- Community for developers who ship impactful projects
+## 🚀 Implemented Features
 
-## 🚀 Features
-- **AI Concept Mapping**: Visual knowledge graphs that dynamically organize study materials and highlight connections between concepts using OpenAI's embeddings and graph algorithms.
-- **Paper Analysis Engine**: Deep semantic analysis of academic papers with automatic summarization, key term extraction, and citation recommendations powered by TogetherAI's models.
-- **Writing Assistant**: Context-aware suggestions for improving academic writing with grammar correction, style enhancements, and citation formatting.
-- **Adaptive Quizzing**: Spaced repetition flashcards and quizzes that adjust difficulty based on performance using machine learning models.
-- **Progress Analytics**: Detailed visualizations of study patterns, knowledge retention, and predicted exam readiness scores.
-- **Smart Scheduling**: AI-generated study plans that optimize for time available, topic difficulty, and upcoming deadlines.
-- **Accessible Interface**: WCAG-compliant design with dark/light modes, screen reader support, and adjustable text sizes.
+- **Dashboard & Productivity**
+  - Pomodoro timer for focused study sessions
+  - Weekly scheduler to plan your study routine
+  - Daily motivational quotes
+
+- **AI Notes**
+  - Create, edit, and organize notes
+  - AI-powered summarization of notes
+  - Markdown preview and syntax highlighting
+
+- **Flashcards & Quizzes**
+  - Instantly generate flashcards from notes
+  - Practice quizzes with automatic question generation
+  - Spaced repetition review
+
+- **Study Mode**
+  - Unified interface for reviewing notes, flashcards, and quizzes
+  - Study statistics and knowledge gap suggestions
+
+- **Research Tools**
+  - Upload PDF research papers for analysis
+  - Automatic extraction of key concepts and research questions
+  - Visual concept mapping
+
+- **Image Analysis**
+  - Upload images to receive AI-generated captions and insights
+
+- **Voice Tools**
+  - Record audio notes
+  - Automatic transcription of recordings
+  - Voice library and analysis
+
+- **Language Learning**
+  - Practice conversations
+  - Vocabulary drills
+  - Language progress tracking and exercises
+
+- **Community Hub**
+  - Join or create study groups
+  - Participate in forums
+  - View and share community events and resources
+
+- **Profile & Authentication**
+  - Secure signup, login, and profile management (Supabase auth)
+  - Personal dashboard and settings
+
+- **Accessibility & Theming**
+  - Fully responsive design
+  - Dark/light mode toggle
+  - Keyboard navigation and accessible UI components
 
 ## 🛠️ Tech Stack
-- **Core Framework**: Next.js 14 (App Router) with React Server Components
-- **State Management**: Zustand for global state + React Query for data fetching
-- **Styling**: Tailwind CSS with Shadcn UI component library
-- **AI Services**:
-  - OpenAI GPT-4 for natural language processing
-  - TogetherAI for specialized academic models
-  - LangChain for AI workflow orchestration
-  - Pinecone for vector search and semantic retrieval
-- **Data Visualization**: Recharts for interactive study analytics
-- **Internationalization**: Next-Intl for multilingual support
-- **Testing**: Jest + React Testing Library + Cypress E2E
+- **Framework**: Next.js 14 (App Router), React Server Components
+- **Styling**: Tailwind CSS, Shadcn UI
+- **State Management**: Zustand, React Query
+- **AI Services**: OpenAI, TogetherAI, LangChain
+- **Authentication**: Supabase
 - **CI/CD**: GitHub Actions with automated testing and preview deployments
 
 ## ⏱️ Development Journey
