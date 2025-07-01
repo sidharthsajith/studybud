@@ -24,28 +24,9 @@ StudyBud is an AI-powered learning platform that helps students organize, study,
   - Unified interface for reviewing notes, flashcards, and quizzes
   - Study statistics and knowledge gap suggestions
 
-- **Research Tools**
-  - Upload PDF research papers for analysis
-  - Automatic extraction of key concepts and research questions
-  - Visual concept mapping
-
 - **Image Analysis**
   - Upload images to receive AI-generated captions and insights
 
-- **Voice Tools**
-  - Record audio notes
-  - Automatic transcription of recordings
-  - Voice library and analysis
-
-- **Language Learning**
-  - Practice conversations
-  - Vocabulary drills
-  - Language progress tracking and exercises
-
-- **Community Hub**
-  - Join or create study groups
-  - Participate in forums
-  - View and share community events and resources
 
 - **Profile & Authentication**
   - Secure signup, login, and profile management (Supabase auth)
