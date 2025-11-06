@@ -1,33 +1,29 @@
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 // Initialize OpenAI client configured for OpenRouter
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY || "",
-  basePath: "https://openrouter.ai/api/v1",
-  baseOptions: {
-    headers: {
-      'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-      'X-Title': 'StudyBud',
-    },
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    'X-Title': 'StudyBud',
   },
+  defaultQuery: { 'api-version': '2023-05-15' },
 });
-
-const openai = new OpenAIApi(configuration);
 
 // Default model to use
 const DEFAULT_MODEL = 'meta-llama/llama-3-8b-instruct';
 
 export async function generateCompletion(prompt: string) {
   try {
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: DEFAULT_MODEL,
       messages: [{ role: "user", content: prompt }],
     });
 
-    const content = completion.data.choices?.[0]?.message?.content;
-    return content ?? "";
+    return completion.choices[0]?.message?.content || "";
   } catch (error) {
     console.error("Error generating completion:", error);
     return "Sorry, I encountered an error while processing your request.";
@@ -68,7 +64,7 @@ export async function generateQuiz(notes: string) {
   });
 
   try {
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: DEFAULT_MODEL,
       messages: [
         {
@@ -81,7 +77,9 @@ export async function generateQuiz(notes: string) {
           content: `Generate quiz questions from these notes: ${notes}`,
         },
       ],
-      response_format: { type: "json_object", schema: zodToJsonSchema(quizSchema) },
+      // Note: Removed schema validation as it's not directly supported in this format with OpenRouter
+      // Consider implementing client-side validation instead
+      response_format: { type: "json_object" },
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -115,10 +113,10 @@ export async function generateResearchQuestions(topic: string) {
 
 export async function analyzeLanguage(text: string, language: string) {
   const prompt = `Analyze the following ${language} text and provide feedback:\n\n${text}\n\n` +
-    `Please format your response as a JSON object with the following structure:\n{\n  "translation": "English translation of the text",\n  "grammar_issues": [\n    {"error": "Description of grammar error", "correction": "Suggested correction"}\n  ],\n  "vocabulary_level": "Beginner/Intermediate/Advanced",\n  "fluency_score": 0,\n  "vocabulary": ["List", "of", "notable", "vocabulary", "words", "used"],\n  "suggestions": ["Suggestion 1", "Suggestion 2"]\n}`;
+    `Please format your response as a JSON object with the following structure:\n{\n  \"translation\": \"English translation of the text\",\n  \"grammar_issues\": [\n    {\"error\": \"Description of grammar error\", \"correction\": \"Suggested correction\"}\n  ],\n  \"vocabulary_level\": \"Beginner/Intermediate/Advanced\",\n  \"fluency_score\": 0,\n  \"vocabulary\": [\"List\", \"of\", \"notable\", \"vocabulary\", \"words\", \"used\"],\n  \"suggestions\": [\"Suggestion 1\", \"Suggestion 2\"]\n}`;
 
   try {
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: DEFAULT_MODEL,
       messages: [
         {
