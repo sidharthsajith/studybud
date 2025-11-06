@@ -1,24 +1,36 @@
-import Together from "together-ai";
+import { Configuration, OpenAIApi } from 'openai';
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
-// Initialize Together AI client
-const together = new Together({
-  apiKey: process.env.TOGETHER_API_KEY || "",
+// Initialize OpenAI client configured for OpenRouter
+const configuration = new Configuration({
+  apiKey: process.env.OPENROUTER_API_KEY || "",
+  basePath: "https://openrouter.ai/api/v1",
+  baseOptions: {
+    headers: {
+      'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      'X-Title': 'StudyBud',
+    },
+  },
 });
+
+const openai = new OpenAIApi(configuration);
+
+// Default model to use
+const DEFAULT_MODEL = 'meta-llama/llama-3-8b-instruct';
 
 export async function generateCompletion(prompt: string) {
   try {
-    const completion = await together.chat.completions.create({
-      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    const completion = await openai.createChatCompletion({
+      model: DEFAULT_MODEL,
       messages: [{ role: "user", content: prompt }],
-    })
+    });
 
-    const content = completion.choices?.[0]?.message?.content
-    return content ?? ""
+    const content = completion.data.choices?.[0]?.message?.content;
+    return content ?? "";
   } catch (error) {
-    console.error("Error generating completion:", error)
-    return "Sorry, I encountered an error while processing your request."
+    console.error("Error generating completion:", error);
+    return "Sorry, I encountered an error while processing your request.";
   }
 }
 
@@ -42,126 +54,109 @@ function extractJson(str: string): any {
   }
 }
 
-export async function generateFlashcards(notes: string) {
-  // Zod schema for structured output
-  const flashcardSchema = z.object({
-    flashcards: z.array(
-      z.object({
-        front: z.string().describe("Question or term"),
-        back: z.string().describe("Answer or definition"),
-      }),
-    ),
-  })
-  const jsonSchema = zodToJsonSchema(flashcardSchema, { target: "openAi" })
-
-  const completion = await together.chat.completions.create({
-    model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-    messages: [
-      {
-        role: "system",
-        content: "You are an assistant that only responds with valid JSON that conforms to the given schema.",
-      },
-      {
-        role: "user",
-        content: `Generate flashcards from the following study notes:`,
-      },
-      { role: "user", content: notes },
-    ],
-    response_format: { type: "json_object", schema: jsonSchema },
-  })
-
-  const raw = completion.choices?.[0]?.message?.content ?? "";
-  const parsed = extractJson(raw);
-  if (parsed && Array.isArray(parsed.flashcards)) return parsed.flashcards;
-  console.error('Error parsing structured flashcards response', raw);
-  return []; 
-}
 
 export async function generateQuiz(notes: string) {
   // Zod schema for structured output
   const quizSchema = z.object({
-    quiz: z.array(
+    questions: z.array(
       z.object({
         question: z.string(),
-        options: z.array(z.string()).length(4),
-        correctAnswer: z.string(),
-      }),
+        options: z.array(z.string()),
+        correctAnswer: z.number().int().min(0),
+      })
     ),
-  })
-  const jsonSchema = zodToJsonSchema(quizSchema, { target: "openAi" })
+  });
 
-  const completion = await together.chat.completions.create({
-    model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-    messages: [
-      {
-        role: "system",
-        content: "You are an assistant that only responds with valid JSON that conforms to the given schema.",
-      },
-      {
-        role: "user",
-        content: `Generate a multiple choice quiz from the following study notes:`,
-      },
-      { role: "user", content: notes },
-    ],
-    response_format: { type: "json_object", schema: jsonSchema },
-  })
+  try {
+    const completion = await openai.createChatCompletion({
+      model: DEFAULT_MODEL,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful quiz generator. Create multiple-choice questions based on the provided notes. Each question should have 4 options and one correct answer. Return only valid JSON.",
+        },
+        {
+          role: "user",
+          content: `Generate quiz questions from these notes: ${notes}`,
+        },
+      ],
+      response_format: { type: "json_object", schema: zodToJsonSchema(quizSchema) },
+    });
 
-  const raw = completion.choices?.[0]?.message?.content ?? "";
-  const parsed = extractJson(raw);
-  if (parsed && Array.isArray(parsed.quiz)) return parsed.quiz;
-  console.error('Error parsing structured quiz response', raw);
-  return []; 
+    const content = completion.choices[0]?.message?.content;
+    if (!content) throw new Error("No content in response");
+
+    const parsed = extractJson(content);
+    return parsed?.questions || [];
+  } catch (error) {
+    console.error("Error generating quiz:", error);
+    return [];
+  }
 }
 
 export async function analyzeWriting(text: string) {
-  const prompt = `Analyze the following text and provide suggestions for improvement in terms of clarity, structure, and content:\n\n${text}`
-  return generateCompletion(prompt)
+  return generateCompletion(
+    `Please analyze this writing and provide feedback on grammar, clarity, and structure:\n\n${text}`
+  );
 }
 
 export async function identifyKnowledgeGaps(notes: string, quizResults: string) {
-  const prompt = `Based on the following study notes and quiz results, identify potential knowledge gaps and suggest focused study areas:\n\nNotes:\n${notes}\n\nQuiz Results:\n${quizResults}`
-  return generateCompletion(prompt)
+  return generateCompletion(
+    `Based on these notes and quiz results, identify knowledge gaps and suggest areas for improvement:\n\nNotes: ${notes}\n\nQuiz Results: ${quizResults}`
+  );
 }
 
 export async function generateResearchQuestions(topic: string) {
-  const prompt = `Generate 5 potential research questions related to the following topic:\n\n${topic}`
-  return generateCompletion(prompt)
+  return generateCompletion(
+    `Generate 5 research questions about: ${topic}`
+  );
 }
 
 export async function analyzeLanguage(text: string, language: string) {
-  const prompt = `Analyze the following text in ${language}. Provide feedback on grammar, vocabulary, and fluency. Also provide a translation to English, identify any errors, and suggest improvements.
-
-Text: ${text}
-
-Please format your response as a JSON object with the following structure:
-{
-  "translation": "English translation of the text",
-  "grammar_issues": [
-    {"error": "Description of grammar error", "correction": "Suggested correction"}
-  ],
-  "vocabulary_level": "Beginner/Intermediate/Advanced",
-  "fluency_score": "Score from 1-10",
-  "vocabulary": ["List", "of", "notable", "vocabulary", "words", "used"],
-  "suggestions": ["Suggestion 1", "Suggestion 2"]
-}
-`
-
-  const response = await generateCompletion(prompt)
+  const prompt = `Analyze the following ${language} text and provide feedback:\n\n${text}\n\n` +
+    `Please format your response as a JSON object with the following structure:\n{\n  "translation": "English translation of the text",\n  "grammar_issues": [\n    {"error": "Description of grammar error", "correction": "Suggested correction"}\n  ],\n  "vocabulary_level": "Beginner/Intermediate/Advanced",\n  "fluency_score": 0,\n  "vocabulary": ["List", "of", "notable", "vocabulary", "words", "used"],\n  "suggestions": ["Suggestion 1", "Suggestion 2"]\n}`;
 
   try {
+    const completion = await openai.createChatCompletion({
+      model: DEFAULT_MODEL,
+      messages: [
+        {
+          role: "system",
+          content: `You are a helpful language learning assistant. Analyze the following text in ${language} and provide feedback on grammar, vocabulary, and naturalness.`,
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) throw new Error("No content in response");
+
     // Try to parse the response as JSON
-    return JSON.parse(response)
-  } catch (error) {
-    // If parsing fails, return a structured object with the raw response
-    console.error("Error parsing language analysis response:", error)
+    const result = JSON.parse(content);
+    
+    // Ensure the response has all required fields
     return {
-      translation: "Translation could not be generated",
+      translation: result.translation || "",
+      grammar_issues: result.grammar_issues || [],
+      vocabulary_level: result.vocabulary_level || "Unknown",
+      fluency_score: result.fluency_score || 0,
+      vocabulary: result.vocabulary || [],
+      suggestions: result.suggestions || [],
+    };
+  } catch (error) {
+    console.error("Error analyzing language:", error);
+    return {
+      translation: "",
       grammar_issues: [],
       vocabulary_level: "Unknown",
       fluency_score: 0,
       vocabulary: [],
-      suggestions: ["Try again with a different text"],
-      raw_response: response,
-    }
+      suggestions: ["An error occurred while analyzing the text. Please try again."],
+    };
   }
 }

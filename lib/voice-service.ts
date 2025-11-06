@@ -1,73 +1,193 @@
-import Together from "together-ai"
+// Voice service for handling audio processing with OpenRouter
 
-// Initialize Together AI client
-const together = new Together({
-  apiKey: process.env.TOGETHER_API_KEY || "",
-})
+// Default model for audio processing
+const DEFAULT_AUDIO_MODEL = 'google/gemini-2.5-flash';
 
-export async function transcribeAudio(audioBlob: Blob): Promise<{ text: string }> {
-  try {
-    // In a real implementation, you would:
-    // 1. Convert the audio blob to a format accepted by the API
-    // 2. Send it to a speech-to-text service
-    // 3. Process the response
-
-    // For this demo, we'll simulate a transcription with Together AI
-    // by generating a response based on a prompt
-
-    // Convert audio duration to approximate word count (rough estimate)
-    const audioDuration = 120 // seconds, would be calculated from actual audio
-    const approxWordCount = Math.floor(audioDuration * 2.5) // ~150 words per minute
-
-    const prompt = `Simulate a transcription of an audio recording about a physics lecture on quantum mechanics. The transcription should be approximately ${approxWordCount} words long and include technical terminology related to quantum physics.`
-
-    const completion = await together.chat.completions.create({
-      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-      messages: [{ role: "user", content: prompt }],
-    })
-
-    return { text: completion.choices[0].message.content || "" }
-  } catch (error) {
-    console.error("Error transcribing audio:", error)
-    throw new Error("Failed to transcribe audio")
-  }
+interface TranscriptionResponse {
+  text: string;
+  language?: string;
+  duration?: number;
 }
 
-export async function analyzeTranscription(text: string) {
-  try {
-    const prompt = `Analyze the following transcription for key concepts, sentiment, and engagement markers. Provide a structured analysis with these categories:
-    
-    Transcription: "${text}"
-    `
-
-    const completion = await together.chat.completions.create({
-      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-      messages: [{ role: "user", content: prompt }],
-    })
-
-    return completion.choices[0].message.content
-  } catch (error) {
-    console.error("Error analyzing transcription:", error)
-    throw new Error("Failed to analyze transcription")
-  }
+interface AnalysisResult {
+  keyConcepts: string[];
+  sentiment: {
+    score: number;
+    label: string;
+  };
+  engagement: {
+    questions: string[];
+    examples: string[];
+    interactiveElements: string[];
+  };
+  actionItems: string[];
+  suggestedTopics?: string[];
 }
 
-export async function generateStudyMaterialsFromAudio(text: string, type: "summary" | "flashcards" | "quiz") {
+export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionResponse> {
   try {
-    const prompts = {
-      summary: `Create a concise summary of the following transcription: "${text}"`,
-      flashcards: `Generate 5 flashcards based on the following transcription. For each flashcard, provide a front (term/question) and back (definition/answer): "${text}"`,
-      quiz: `Create a 5-question quiz based on the following transcription. For each question, provide 4 options and indicate the correct answer: "${text}"`,
+    // Convert blob to base64
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const base64Audio = Buffer.from(arrayBuffer).toString('base64');
+    const mimeType = audioBlob.type || 'audio/mp3';
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+        'X-Title': 'StudyBud',
+      },
+      body: JSON.stringify({
+        model: DEFAULT_AUDIO_MODEL,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Transcribe this audio file accurately' },
+              {
+                type: 'input_audio',
+                input_audio: {
+                  data: base64Audio,
+                  format: mimeType.split('/')[1] || 'mp3',
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to transcribe audio');
     }
 
-    const completion = await together.chat.completions.create({
-      model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-      messages: [{ role: "user", content: prompts[type] }],
-    })
+    const data = await response.json();
+    const transcription = data.choices[0]?.message?.content;
 
-    return completion.choices[0].message.content
+    if (!transcription) {
+      throw new Error('No transcription returned from API');
+    }
+
+    return {
+      text: transcription,
+      language: 'en',
+      duration: 0, // Calculate from audio blob if needed
+    };
   } catch (error) {
-    console.error("Error generating study materials:", error)
-    throw new Error("Failed to generate study materials")
+    console.error('Error transcribing audio:', error);
+    throw new Error('Failed to transcribe audio');
+  }
+}
+
+export async function analyzeTranscription(text: string): Promise<AnalysisResult> {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+        'X-Title': 'StudyBud',
+      },
+      body: JSON.stringify({
+        model: DEFAULT_AUDIO_MODEL,
+        messages: [
+          {
+            role: 'user',
+            content: `Analyze the following transcription and provide a structured JSON response with these categories:
+            1. keyConcepts: Array of main topics and ideas
+            2. sentiment: Object with score (-1 to 1) and label (positive/negative/neutral)
+            3. engagement: Object containing questions, examples, and interactiveElements arrays
+            4. actionItems: Array of tasks or follow-ups mentioned
+            5. suggestedTopics: Array of related subjects for further learning
+            
+            Transcription: ${text.substring(0, 15000)}`
+          }
+        ],
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to analyze transcription');
+    }
+
+    const data = await response.json();
+    const result = data.choices[0]?.message?.content;
+    
+    if (!result) {
+      throw new Error('No analysis returned from API');
+    }
+
+    const analysis = typeof result === 'string' ? JSON.parse(result) : result;
+
+    // Ensure the response has the expected structure
+    return {
+      keyConcepts: Array.isArray(analysis.keyConcepts) ? analysis.keyConcepts : [],
+      sentiment: {
+        score: analysis.sentiment?.score ?? 0,
+        label: analysis.sentiment?.label || 'neutral',
+      },
+      engagement: {
+        questions: Array.isArray(analysis.engagement?.questions) ? analysis.engagement.questions : [],
+        examples: Array.isArray(analysis.engagement?.examples) ? analysis.engagement.examples : [],
+        interactiveElements: Array.isArray(analysis.engagement?.interactiveElements) 
+          ? analysis.engagement.interactiveElements 
+          : [],
+      },
+      actionItems: Array.isArray(analysis.actionItems) ? analysis.actionItems : [],
+      suggestedTopics: Array.isArray(analysis.suggestedTopics) ? analysis.suggestedTopics : [],
+    };
+  } catch (error) {
+    console.error('Error analyzing transcription:', error);
+    throw new Error('Failed to analyze transcription');
+  }
+}
+
+export async function generateStudyMaterials(
+  text: string,
+  type: 'summary' | 'flashcards' | 'quiz' | 'notes'
+): Promise<string> {
+  try {
+    const prompts = {
+      summary: 'Create a concise summary of the following content, highlighting key points and main ideas.',
+      flashcards: 'Generate flashcards for the following content. Each flashcard should have a clear question and answer.',
+      quiz: 'Create a quiz based on the following content. Include multiple choice questions with 4 options each.',
+      notes: 'Create organized study notes from the following content, using headings, bullet points, and clear sections.'
+    };
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+        'X-Title': 'StudyBud',
+      },
+      body: JSON.stringify({
+        model: DEFAULT_AUDIO_MODEL,
+        messages: [
+          {
+            role: 'user',
+            content: `${prompts[type]}\n\n${text.substring(0, 15000)}`
+          }
+        ]
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || `Failed to generate ${type}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || `No ${type} generated.`;
+  } catch (error) {
+    console.error(`Error generating ${type}:`, error);
+    throw new Error(`Failed to generate ${type}`);
   }
 }

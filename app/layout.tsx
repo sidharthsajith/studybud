@@ -1,44 +1,37 @@
-import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { AuthProvider } from "@/contexts/AuthProvider"
-import { Sidebar } from "@/components/sidebar"
-import { AuthGuard } from "@/components/auth-guard"
-import { Header } from "@/components/header"
 import { Toaster } from "@/components/ui/toaster"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: '--font-inter',
+  display: 'swap'
+})
 
 export const metadata: Metadata = {
-  title: "StudyBud - Notes & Image Analysis",
-  description: "A simple AI-powered note-taking and image analysis tool",
-    generator: 'v0.dev'
+  title: "StudyBud - Your AI Study Companion",
+  description: "Transform your study sessions with AI-powered tools for notes, PDFs, and more"
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <AuthGuard>
-            <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <div className="flex flex-col flex-1 overflow-hidden">
-              <Header />
-              <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950">{children}</main>
-            </div>
-            </div>
-            </AuthGuard>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} antialiased`}>
+      <body className="min-h-screen bg-white dark:bg-slate-950">
+        <ThemeProvider 
+          attribute="class" 
+          defaultTheme="system" 
+          enableSystem 
+          disableTransitionOnChange
+        >
+          {children}
           <Toaster />
         </ThemeProvider>
-        </AuthProvider>
       </body>
     </html>
   )

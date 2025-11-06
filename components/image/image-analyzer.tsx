@@ -82,47 +82,26 @@ export function ImageAnalyzer() {
       }
 
       if (!url) {
-        throw new Error("Please provide an image URL or upload an image")
+        throw new Error("No image URL available for analysis")
       }
 
-      // Validate external URL
-      if (!url.startsWith("data:") && !isValidUrl(url)) {
-        throw new Error("Please enter a valid image URL")
-      }
-
-      // Send the image URL or data URL to the API for analysis
-      const response = await fetch("/api/image-analysis", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageUrl: url,
-          action: activeTab,
-          prompt: prompt,
-        }),
+      // Dynamically import the client-side image analysis utility
+      const { analyzeImage: analyzeImageWithOpenRouter } = await import('@/lib/image-utils')
+      
+      // Use client-side image analysis
+      const analysisResult = await analyzeImageWithOpenRouter(url, {
+        action: activeTab as any,
+        prompt: prompt || undefined,
       })
-
-      if (!response.ok) {
-        let errorMessage = "Failed to analyze image"
-        try {
-          const errorData = await response.json()
-          errorMessage = errorData.error || errorMessage
-        } catch (e) {
-          // If response is not JSON, try to get text
-          errorMessage = (await response.text()) || errorMessage
-        }
-        throw new Error(errorMessage)
-      }
-
-      const data = await response.json()
-      setResult(data.result)
+      
+      setResult(analysisResult)
     } catch (error: any) {
       console.error("Error:", error)
-      setError(error.message || "An unknown error occurred")
+      const errorMessage = error.message || "An unknown error occurred"
+      setError(errorMessage)
       toast({
         title: "Analysis failed",
-        description: error.message || "Failed to analyze image",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {

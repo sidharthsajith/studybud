@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
-// Disable authentication requirement for this route
-export const dynamic = 'force-dynamic' // Disable static optimization
+// This is a public endpoint that doesn't require authentication
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
@@ -10,10 +10,6 @@ export async function POST(request: Request) {
     if (!content || !content.trim()) {
       return NextResponse.json({ error: "Content is required for summarization" }, { status: 400 })
     }
-    
-    // Simple rate limiting check (optional)
-    const rateLimit = 5 // Max requests per minute
-    // You can implement a more sophisticated rate limiter if needed
 
     // Call OpenRouter API for summarization
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {

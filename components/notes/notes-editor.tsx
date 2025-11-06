@@ -7,27 +7,18 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Save, Sparkles, Plus, Trash2, FileText, Copy } from "lucide-react"
-import { FlashcardList } from "./flashcard-list"
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import { useAuth } from "@/contexts/AuthProvider"
-
 interface Note {
   id: string
-  userId: string
   title: string
   content: string
   summary?: string
   createdAt: string
   updatedAt: string
-}
-
-interface Flashcard {
-  front: string
-  back: string
 }
 
 interface QuizQuestion {
@@ -37,7 +28,6 @@ interface QuizQuestion {
 }
 
 export function NotesEditor() {
-  const { user } = useAuth()
   const { toast } = useToast()
   const [notes, setNotes] = useState<Note[]>([])
   const [currentNote, setCurrentNote] = useState<Note | null>(null)
@@ -47,37 +37,22 @@ export function NotesEditor() {
   const [loading, setLoading] = useState(false)
   const [summarizing, setSummarizing] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([])
   const [quiz, setQuiz] = useState<QuizQuestion[]>([])
 
-  // Load notes for the logged-in user from sessionStorage
-  useEffect(() => {
-    if (!user) return;
-
-    try {
-      const saved = sessionStorage.getItem('studybud-notes');
-      if (saved) {
-        const parsed: Note[] = JSON.parse(saved).filter((n: Note) => n.userId === user.id);
-        setNotes(parsed);
-        if (parsed.length > 0) {
-          selectNote(parsed[0]);
-        }
-      }
-    } catch (err) {
-      console.error('Error loading notes from sessionStorage:', err);
-    }
-  }, [user]);
+  // Load notes from sessionStorage
   useEffect(() => {
     const savedNotes = sessionStorage.getItem("studybud-notes")
     if (savedNotes) {
       try {
         const parsedNotes = JSON.parse(savedNotes)
-        setNotes(parsedNotes)
-        if (parsedNotes.length > 0) {
+        setNotes(Array.isArray(parsedNotes) ? parsedNotes : [])
+        if (Array.isArray(parsedNotes) && parsedNotes.length > 0) {
           selectNote(parsedNotes[0])
         }
       } catch (error) {
         console.error("Error loading notes:", error)
+        // Initialize with empty array if there's an error
+        setNotes([])
       }
     }
   }, [])
@@ -86,18 +61,8 @@ export function NotesEditor() {
   useEffect(() => {
     if (notes.length > 0) {
       sessionStorage.setItem("studybud-notes", JSON.stringify(notes));
-      
-      // Load flashcards from session storage when notes change
-      if (currentNote) {
-        const sessionFlashcards = JSON.parse(sessionStorage.getItem('studybud-flashcards') || '{}');
-        if (sessionFlashcards[currentNote.id]) {
-          setFlashcards(sessionFlashcards[currentNote.id]);
-        } else {
-          setFlashcards([]);
-        }
-      }
     }
-  }, [notes, currentNote])
+  }, [notes])
 
   const selectNote = (note: Note) => {
     setCurrentNote(note)
@@ -107,15 +72,9 @@ export function NotesEditor() {
   }
 
   const createNewNote = () => {
-    if (!user) {
-      toast({ title: "Login required", description: "Please login first", variant: "destructive" });
-      return;
-    }
-
     const now = new Date().toISOString();
     const newNote: Note = {
-      id: `note-${Date.now()}`,
-      userId: user.id,
+      id: Date.now().toString(),
       title: "Untitled Note",
       content: "",
       summary: "",
@@ -125,35 +84,76 @@ export function NotesEditor() {
 
     const updatedNotes = [newNote, ...notes];
     setNotes(updatedNotes);
-    sessionStorage.setItem('studybud-notes', JSON.stringify(updatedNotes));
+    localStorage.setItem('notes', JSON.stringify(updatedNotes));
     selectNote(newNote);
   }
 
   const saveNote = async () => {
-    if (!currentNote) return
-
-    setLoading(true)
-    try {
-      const updatedNote: Note = {
-        ...currentNote,
-        title: title || "Untitled Note",
-        content,
-        summary,
-        updatedAt: new Date().toISOString(),
-      }
-
-      const updatedNotes = notes.map((note) => (note.id === currentNote.id ? updatedNote : note))
-      setNotes(updatedNotes)
-      setCurrentNote(updatedNote)
-
+    if (!title.trim() || !content.trim()) {
       toast({
-        title: "Note saved",
-        description: "Your note has been saved successfully",
+        title: "Error",
+        description: "Please enter both title and content",
+        variant: "destructive",
       })
+      return
+    }
+
+    try {
+      setLoading(true)
+      const now = new Date().toISOString()
+      
+      if (currentNote) {
+        // Update existing note
+        const updatedNote = {
+          ...currentNote,
+          title,
+          content,
+          summary: summary || currentNote.summary,
+          updatedAt: now,
+        }
+        
+        const updatedNotes = notes.map(note => 
+          note.id === currentNote.id ? updatedNote : note
+        )
+        
+        setNotes(updatedNotes)
+        setCurrentNote(updatedNote)
+        
+        // Save to localStorage
+        localStorage.setItem('notes', JSON.stringify(updatedNotes))
+        
+        toast({
+          title: "Success",
+          description: "Note updated successfully",
+        })
+      } else {
+        // Create new note
+        const newNote = {
+          id: Date.now().toString(),
+          title,
+          content,
+          summary,
+          createdAt: now,
+          updatedAt: now,
+        }
+        
+        const updatedNotes = [...notes, newNote]
+        setNotes(updatedNotes)
+        setCurrentNote(newNote)
+        
+        // Save to localStorage
+        localStorage.setItem('notes', JSON.stringify(updatedNotes))
+        
+        toast({
+          title: "Success",
+          description: "Note created successfully",
+        })
+      }
     } catch (error) {
+      console.error('Error saving note:', error)
       toast({
-        title: "Error saving note",
-        description: "Failed to save your note. Please try again.",
+        title: "Error",
+        description: "Failed to save note. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -194,30 +194,18 @@ export function NotesEditor() {
 
     setSummarizing(true)
     try {
-      const response = await fetch("/api/summarize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: content,
-          title: title,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to summarize note")
-      }
-
-      const data = await response.json()
-      setSummary(data.summary)
+      // Use client-side summarization
+      const summaryText = await import('@/lib/summarize').then(module => 
+        module.summarizeContent(content, title)
+      )
+      
+      setSummary(summaryText)
 
       // Update current note with the new summary
       if (currentNote) {
         const updatedNote = {
           ...currentNote,
-          summary: data.summary,
+          summary: summaryText,
           updatedAt: new Date().toISOString(),
         }
         const updatedNotes = notes.map((note) => 
@@ -260,84 +248,6 @@ export function NotesEditor() {
     }
   }
 
-  const saveFlashcards = (flashcards: Flashcard[], noteId: string) => {
-
-    
-    try {
-      // Persist flashcards in sessionStorage
-      sessionStorage.setItem(`studybud-flashcards-${noteId}`, JSON.stringify(flashcards));
-      setFlashcards(flashcards);
-      return flashcards;
-    } catch (error) {
-      console.error('Error saving flashcards to Supabase:', error);
-      throw error;
-    }
-  };
-
-  const handleGenerateFlashcards = async () => {
-    if (!currentNote) {
-      toast({
-        title: "No note selected",
-        description: "Please create or select a note first",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    console.log("Generating flashcards for content:", content);
-    console.log("Current flashcards state before generation:", flashcards);
-
-    setIsGenerating(true);
-    try {
-      const baseUrl = window.location.origin;
-      console.log("Sending request to:", `${baseUrl}/api/flashcards`);
-      const response = await fetch(`${baseUrl}/api/flashcards`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: content,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate flashcards");
-      }
-
-      const data = await response.json();
-      console.log("Received flashcards data:", data);
-      
-      // Update local state
-      const newFlashcards = data.flashcards || [];
-      console.log("Setting new flashcards:", newFlashcards);
-      setFlashcards(newFlashcards);
-      
-      // Save to session storage
-      const sessionFlashcards = JSON.parse(sessionStorage.getItem('studybud-flashcards') || '{}');
-      sessionFlashcards[currentNote.id] = newFlashcards;
-      sessionStorage.setItem('studybud-flashcards', JSON.stringify(sessionFlashcards));
-      console.log("Saved to session storage:", sessionFlashcards);
-
-      // Persist flashcards in sessionStorage
-      saveFlashcards(newFlashcards, currentNote.id);
-
-      toast({
-        title: "Flashcards generated",
-        description: `Successfully generated ${data.flashcards.length} flashcards`,
-      });
-    } catch (error: any) {
-      console.error("Error generating flashcards:", error)
-      toast({
-        title: "Flashcard generation failed",
-        description: error.message || "Failed to generate flashcards",
-        variant: "destructive",
-      })
-    } finally {
-      setIsGenerating(false)
-    }
-  }
 
   const handleGenerateQuiz = async () => {
     console.log("Generating quiz for content:", content);
@@ -381,9 +291,6 @@ export function NotesEditor() {
     }
   }
 
-  // Debug render
-  console.log("Rendering NotesEditor. Current flashcards:", flashcards);
-  
   return (
     <div className="grid gap-6 lg:grid-cols-4">
       {/* Notes List */}
@@ -464,17 +371,6 @@ export function NotesEditor() {
                     <Save className="w-4 h-4 mr-2" />
                   )}
                   Save
-                </Button>
-                <Button
-                  onClick={handleGenerateFlashcards}
-                  disabled={isGenerating || !content.trim()}
-                >
-                  {isGenerating ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-4 h-4 mr-2" />
-                  )}
-                  Generate Flashcards
                 </Button>
                 
               </div>
@@ -576,31 +472,6 @@ export function NotesEditor() {
               </Card>
             )}
 
-            {/* Flashcards */}
-            <div className="mt-8">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Flashcards</h3>
-                {flashcards.length > 0 && (
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    onClick={() => setFlashcards([])}
-                  >
-                    Clear All
-                  </Button>
-                )}
-              </div>
-              
-              {flashcards.length > 0 ? (
-                <FlashcardList flashcards={flashcards} />
-              ) : (
-                <div className="text-center p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    No flashcards generated yet. Click "Generate Flashcards" to create some!
-                  </p>
-                </div>
-              )}
-            </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-96 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700">
