@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} antialiased`}>
-      <body className="min-h-screen bg-white dark:bg-slate-950">
+      <body className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <ThemeProvider 
           attribute="class" 
           defaultTheme="system" 
