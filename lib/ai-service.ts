@@ -99,6 +99,22 @@ export async function analyzeWriting(text: string) {
   );
 }
 
+export async function generateStudyMaterials(content: string, type: string) {
+  try {
+    const prompt = `Create comprehensive study materials for the following ${type} content. 
+      Include key concepts, definitions, examples, and any relevant diagrams or visual aids:
+      
+      ${content}
+      
+      Format your response in markdown with appropriate headings.`;
+      
+    return await generateCompletion(prompt);
+  } catch (error) {
+    console.error("Error generating study materials:", error);
+    return "Sorry, I encountered an error while generating study materials.";
+  }
+}
+
 export async function identifyKnowledgeGaps(notes: string, quizResults: string) {
   return generateCompletion(
     `Based on these notes and quiz results, identify knowledge gaps and suggest areas for improvement:\n\nNotes: ${notes}\n\nQuiz Results: ${quizResults}`
